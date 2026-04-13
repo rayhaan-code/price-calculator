@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Package Price Calculator</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: #f0f2f5; color: #1a1a2e; min-height: 100vh; }
+
+  .header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); color: white; padding: 2rem; text-align: center; position: relative; }
+  .header h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .header p { opacity: 0.8; font-size: 0.95rem; }
+  .admin-link { position: absolute; top: 1rem; right: 1rem; color: rgba(255,255,255,0.3); font-size: 0.75rem; text-decoration: none; cursor: pointer; }
+  .admin-link:hover { color: rgba(255,255,255,0.7); }
+
+  .container { max-width: 720px; margin: -2rem auto 2rem; padding: 0 1rem; position: relative; z-index: 1; }
+
+  .card { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.08); margin-bottom: 1.5rem; }
+  .card h2 { font-size: 0.9rem; color: #555; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 1rem; }
+
+  .form-group { margin-bottom: 1.5rem; }
+  .form-group label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  select, input[type="number"], input[type="password"] {
+    width: 100%; padding: 0.85rem 1rem; border: 2px solid #e0e0e0; border-radius: 10px;
+    font-size: 1rem; transition: border-color 0.2s; background: #fafafa; appearance: none; -webkit-appearance: none;
+  }
+  select { background: #fafafa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat right 1rem center; padding-right: 2.5rem; cursor: pointer; }
+  select:focus, input:focus { outline: none; border-color: #0f3460; background: white; }
+  select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .freq-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; }
+  .freq-btn { padding: 0.9rem 0.5rem; border: 2px solid #e0e0e0; border-radius: 10px; background: #fafafa; cursor: pointer; text-align: center; transition: all 0.2s; font-size: 0.95rem; }
+  .freq-btn:hover:not(.disabled) { border-color: #0f3460; background: #f0f4ff; }
+  .freq-btn.active { border-color: #0f3460; background: #0f3460; color: white; }
+  .freq-btn.disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+  .freq-btn .price-tag { display: block; font-size: 0.75rem; opacity: 0.7; margin-top: 0.25rem; }
+
+  .discount-type-toggle { display: flex; border: 2px solid #e0e0e0; border-radius: 10px; overflow: hidden; }
+  .discount-type-toggle button { flex: 1; padding: 0.85rem; border: none; background: #fafafa; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; }
+  .discount-type-toggle button.active { background: #0f3460; color: white; }
+
+  .addon-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .addon-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; border: 2px solid #e0e0e0; border-radius: 10px; cursor: pointer; transition: all 0.2s; background: #fafafa; }
+  .addon-item:hover { border-color: #0f3460; background: #f0f4ff; }
+  .addon-item.checked { border-color: #0f3460; background: #eef2ff; }
+  .addon-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: #0f3460; cursor: pointer; flex-shrink: 0; }
+  .addon-item .addon-info { flex: 1; }
+  .addon-item .addon-name { font-weight: 600; font-size: 0.95rem; }
+  .addon-item .addon-detail { font-size: 0.8rem; color: #888; margin-top: 0.15rem; }
+  .addon-item .addon-price { font-weight: 700; font-size: 1rem; color: #0f3460; white-space: nowrap; }
+
+  .duration-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem; }
+  .duration-card { border: 2px solid #e0e0e0; border-radius: 12px; padding: 1.25rem; text-align: center; position: relative; }
+  .duration-card.highlight { border-color: #27ae60; background: #f0faf4; }
+  .duration-card .dur-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: #888; font-weight: 600; }
+  .duration-card .dur-price { font-size: 1.6rem; font-weight: 800; color: #1a1a2e; margin: 0.4rem 0 0.15rem; }
+  .duration-card .dur-detail { font-size: 0.8rem; color: #888; }
+  .best-value-tag { position: absolute; top: -10px; right: 12px; background: #27ae60; color: white; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 10px; text-transform: uppercase; }
+
+  .result-card { background: linear-gradient(135deg, #1a1a2e, #0f3460); color: white; border-radius: 16px; padding: 2rem; text-align: center; }
+  .result-card .label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.7; margin-bottom: 0.5rem; }
+  .result-card .total { font-size: 3rem; font-weight: 800; margin-bottom: 0.25rem; }
+  .result-card .total .currency { font-size: 1.5rem; vertical-align: super; opacity: 0.8; }
+  .result-card .breakdown { font-size: 0.9rem; opacity: 0.7; margin-top: 0.75rem; line-height: 1.8; }
+  .result-card .discount-badge { display: inline-block; background: rgba(255,255,255,0.15); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.8rem; margin-top: 0.5rem; }
+  .result-card .original-price { text-decoration: line-through; opacity: 0.5; font-size: 1.2rem; margin-bottom: 0.25rem; }
+
+  .message-card { background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.08); margin-bottom: 1.5rem; }
+  .message-card h2 { font-size: 0.9rem; color: #555; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 1rem; }
+  .message-box { background: #f8f9fa; border: 2px solid #e0e0e0; border-radius: 10px; padding: 1rem; font-size: 0.95rem; line-height: 1.6; color: #333; min-height: 60px; white-space: pre-wrap; }
+  .msg-tabs { display: flex; border: 2px solid #e0e0e0; border-radius: 10px; overflow: hidden; margin-bottom: 1rem; }
+  .msg-tab { flex: 1; padding: 0.7rem; border: none; background: #fafafa; cursor: pointer; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; color: #555; }
+  .msg-tab.active { background: #0f3460; color: white; }
+  .copy-btn { margin-top: 0.75rem; width: 100%; padding: 0.85rem; border: none; border-radius: 10px; background: #0f3460; color: white; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .copy-btn:hover { background: #1a1a2e; }
+  .copy-btn.copied { background: #27ae60; }
+
+  .hidden { display: none; }
+  .loading { text-align: center; padding: 2rem; color: #888; }
+
+  /* Admin styles */
+  .admin-panel { max-width: 900px; margin: 0 auto; padding: 1rem; }
+  .admin-panel h2 { margin-bottom: 1rem; }
+  .admin-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .admin-table th, .admin-table td { border: 1px solid #e0e0e0; padding: 0.5rem; text-align: center; }
+  .admin-table th { background: #0f3460; color: white; font-size: 0.75rem; text-transform: uppercase; }
+  .admin-table td:first-child, .admin-table td:nth-child(2), .admin-table td:nth-child(3) { text-align: left; font-weight: 600; background: #f8f9fa; }
+  .admin-table input[type="number"] { width: 70px; padding: 0.3rem; border: 1px solid #ddd; border-radius: 4px; text-align: center; font-size: 0.85rem; background: white; }
+  .admin-btn { padding: 0.85rem 2rem; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin: 0.5rem; }
+  .admin-btn-save { background: #27ae60; color: white; }
+  .admin-btn-save:hover { background: #219a52; }
+  .admin-btn-back { background: #e0e0e0; color: #333; }
+  .admin-btn-add { background: #0f3460; color: white; font-size: 0.85rem; padding: 0.5rem 1rem; }
+  .admin-btn-del { background: #e74c3c; color: white; font-size: 0.7rem; padding: 0.25rem 0.5rem; border: none; border-radius: 4px; cursor: pointer; }
+  .admin-actions { text-align: center; margin: 1.5rem 0; }
+  .admin-status { text-align: center; padding: 0.5rem; font-weight: 600; margin: 0.5rem 0; border-radius: 8px; }
+  .admin-status.success { background: #d4edda; color: #155724; }
+  .admin-status.error { background: #f8d7da; color: #721c24; }
+  .admin-section { margin-bottom: 2rem; }
+  .admin-section h3 { margin-bottom: 0.75rem; color: #0f3460; }
+  .admin-new-row { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; align-items: center; }
+  .admin-new-row input, .admin-new-row select { padding: 0.4rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; }
+
+  @media (max-width: 500px) {
+    .freq-grid { grid-template-columns: repeat(2, 1fr); }
+    .admin-table { font-size: 0.75rem; }
+    .admin-table input[type="number"] { width: 55px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN OVERLAY ===== -->
+<div id="adminLogin" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center;">
+  <div class="card" style="max-width:350px;width:90%;margin:0;">
+    <h2>Admin Login</h2>
+    <div class="form-group" style="margin-bottom:1rem">
+      <input type="password" id="adminPwd" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')doAdminLogin()">
+    </div>
+    <button class="copy-btn" onclick="doAdminLogin()">Login</button>
+    <p id="loginError" class="hidden" style="color:#e74c3c;text-align:center;margin-top:0.5rem;font-size:0.85rem;">Incorrect password</p>
+  </div>
+</div>
+
+<!-- ===== CALCULATOR VIEW ===== -->
+<div id="calcView">
+<div class="header">
+  <h1>Package Price Calculator</h1>
+  <p>Select your branch, activity and frequency</p>
+  <a class="admin-link" onclick="showAdminLogin()">Admin</a>
+</div>
+
+<div class="container">
+  <div id="loadingMsg" class="loading">Loading prices...</div>
+
+  <div id="calcContent" class="hidden">
+  <div class="card">
+    <div class="form-group">
+      <label>Branch</label>
+      <select id="branch" onchange="onBranchChange()"><option value="">-- Select Branch --</option></select>
+    </div>
+    <div class="form-group">
+      <label>Activity</label>
+      <select id="activity" disabled onchange="onActivityChange()"><option value="">-- Select Activity --</option></select>
+    </div>
+    <div class="form-group hidden" id="classTypeGroup">
+      <label>Class Type</label>
+      <select id="classType" onchange="onClassTypeChange()"><option value="">-- Select Type --</option></select>
+    </div>
+    <div class="form-group" style="margin-bottom:0">
+      <label>Times per Week</label>
+      <div class="freq-grid">
+        <div class="freq-btn disabled" data-freq="1">1x/week<span class="price-tag"></span></div>
+        <div class="freq-btn disabled" data-freq="2">2x/week<span class="price-tag"></span></div>
+        <div class="freq-btn disabled" data-freq="3">3x/week<span class="price-tag"></span></div>
+        <div class="freq-btn disabled" data-freq="4">4x/week<span class="price-tag"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Add-ons (prices include 5% VAT)</h2>
+    <div class="addon-list">
+      <label class="addon-item"><input type="checkbox" onchange="toggleAddon(this)" data-base="50" data-name="Registration Fee"><div class="addon-info"><div class="addon-name">Registration Fee</div><div class="addon-detail">AED 50.00 + 5% VAT</div></div><div class="addon-price">AED 52.50</div></label>
+      <label class="addon-item"><input type="checkbox" onchange="toggleAddon(this)" data-base="200" data-name="Football/Basketball Kit"><div class="addon-info"><div class="addon-name">Football / Basketball Kit</div><div class="addon-detail">AED 200.00 + 5% VAT</div></div><div class="addon-price">AED 210.00</div></label>
+      <label class="addon-item"><input type="checkbox" onchange="toggleAddon(this)" data-base="75" data-name="Swimming Kit"><div class="addon-info"><div class="addon-name">Swimming Kit</div><div class="addon-detail">AED 75.00 + 5% VAT</div></div><div class="addon-price">AED 78.75</div></label>
+      <label class="addon-item"><input type="checkbox" onchange="toggleAddon(this)" data-base="300" data-name="Gymnastics Kit"><div class="addon-info"><div class="addon-name">Gymnastics Kit</div><div class="addon-detail">AED 300.00 + 5% VAT</div></div><div class="addon-price">AED 315.00</div></label>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="form-group" style="margin-bottom:1rem">
+      <label>Discount (applied to package only)</label>
+      <div class="discount-type-toggle">
+        <button class="active" onclick="setDiscountType('%')">%</button>
+        <button onclick="setDiscountType('AED')">AED</button>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:0">
+      <input type="number" id="discount" min="0" step="any" placeholder="Enter % discount" value="0" oninput="calculate()">
+    </div>
+  </div>
+
+  <div class="card hidden" id="durationCard">
+    <h2>Monthly vs Quarterly Comparison</h2>
+    <div class="duration-grid">
+      <div class="duration-card"><div class="dur-label">1 Month</div><div class="dur-price" id="dur1Price">AED 0</div><div class="dur-detail" id="dur1Detail">per month</div></div>
+      <div class="duration-card highlight"><span class="best-value-tag">Best Value</span><div class="dur-label">3 Months</div><div class="dur-price" id="dur3Price">AED 0</div><div class="dur-detail" id="dur3Detail">total for 3 months</div></div>
+    </div>
+  </div>
+
+  <div class="result-card">
+    <div class="label">Grand Total (1 Month)</div>
+    <div class="original-price hidden" id="originalPrice"></div>
+    <div class="total" id="totalPrice"><span class="currency">AED</span> 0.00</div>
+    <div class="breakdown" id="breakdown">Select a branch, activity and frequency to see pricing</div>
+  </div>
+
+  <div class="message-card">
+    <h2>Message for Customer</h2>
+    <div class="msg-tabs">
+      <button class="msg-tab active" onclick="switchMsg('friendly')">Friendly & Persuasive</button>
+      <button class="msg-tab" onclick="switchMsg('formal')">Short & Professional</button>
+    </div>
+    <div class="message-box" id="messageBox">Complete the selections above to generate a message.</div>
+    <button class="copy-btn" id="copyBtn" onclick="copyMessage()">Copy Message</button>
+  </div>
+  </div>
+</div>
+</div>
+
+<!-- ===== ADMIN VIEW ===== -->
+<div id="adminView" class="hidden">
+<div class="header">
+  <h1>Admin Panel - Price Editor</h1>
+  <p>Edit prices for all branches and activities</p>
+</div>
+<div class="container admin-panel">
+  <div class="admin-actions">
+    <button class="admin-btn admin-btn-back" onclick="exitAdmin()">Back to Calculator</button>
+    <button class="admin-btn admin-btn-save" onclick="saveAdmin()">Save All Changes</button>
+  </div>
+  <div id="adminStatus"></div>
+  <div id="adminContent"></div>
+  <div class="admin-section">
+    <h3>Add New Branch / Activity</h3>
+    <div class="admin-new-row">
+      <input type="text" id="newBranch" placeholder="Branch name" style="flex:1">
+      <input type="text" id="newActivity" placeholder="Activity name" style="flex:1">
+      <select id="newActType"><option value="simple">Simple (no class types)</option><option value="typed">With Class Types (Private/Semi/Group)</option></select>
+      <button class="admin-btn admin-btn-add" onclick="addBranchActivity()">Add</button>
+    </div>
+  </div>
+  <div class="admin-actions">
+    <button class="admin-btn admin-btn-save" onclick="saveAdmin()">Save All Changes</button>
+  </div>
+</div>
+</div>
+
+<script>
+const BLOB_ID = '019d7d11-3ef6-79e6-8b1a-b0c58ef3450c';
+const BLOB_URL = `https://jsonblob.com/api/jsonBlob/${BLOB_ID}`;
+const ADMIN_PWD = 'admin123';
+const FREQ_LABELS = {1:'1x per week',2:'2x per week',3:'3x per week',4:'4x per week'};
+
+const DEFAULT_DATA = {
+  "Nasma":   { "Football": [80,70,60,50], "Swimming": {"types":{"Group":[75,65,60,null],"Semi Private":[null,null,null,null],"Private":[null,null,null,null]}} },
+  "Taawun":  { "Football": [80,70,60,null], "Gymnastics": [60,55,50,null] },
+  "Majaz":   { "Football": [60,50,43.33,40], "Gymnastics": [60,55,50,null], "Basketball": [60,50,43.33,40], "Swimming": {"types":{"Group":[60,55,null,null],"Semi Private":[null,null,null,null],"Private":[null,null,null,null]}} },
+  "Ajman":   { "Football": [60,50,37.50,null], "Gymnastics": [60,55,43,null] },
+  "Tilal":   { "Football": [70,55,null,null], "Gymnastics": [60,55,50,null], "Basketball": [60,55,null,null], "Swimming": {"types":{"Group":[80,67.50,61.67,null],"Semi Private":[null,null,null,null],"Private":[null,null,null,null]}} },
+  "AUS":     { "Football": [null,65,null,null] },
+  "Karama":  { "Gymnastics": [60,55,50,null], "Gymnastics 2Hr": [105,90,82.50,null], "Basketball": [60,55,50,null], "Adults": [60,55,null,null] },
+  "Mirdif":  { "Gymnastics": [75,75,null,null] },
+  "Ryan":    { "Swimming": {"types":{"Group":[75,65,60,null],"Semi Private":[null,null,null,null],"Private":[null,null,null,null]}} },
+  "Tennis":  { "Tennis": {"types":{"Private":[225,null,null,null],"Semi Private":[140,null,null,null],"Group":[85,null,null,null]}} }
+};
+
+let DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
+let selectedFreq = null;
+let discountType = '%';
+let msgFriendly = '';
+let msgFormal = '';
+let activeMsg = 'friendly';
+
+// Load prices - try localStorage first, then cloud, fall back to embedded defaults
+async function loadPrices() {
+  const saved = localStorage.getItem('priceData');
+  if (saved) {
+    try { DATA = JSON.parse(saved); } catch(e) {}
+  }
+  if (Object.keys(DATA).length === 0) {
+    try {
+      const r = await fetch(BLOB_URL);
+      if (r.ok) DATA = await r.json();
+    } catch(e) {
+      DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
+    }
+  }
+  document.getElementById('loadingMsg').classList.add('hidden');
+  document.getElementById('calcContent').classList.remove('hidden');
+  populateBranches();
+}
+
+function populateBranches() {
+  const sel = document.getElementById('branch');
+  sel.innerHTML = '<option value="">-- Select Branch --</option>';
+  Object.keys(DATA).forEach(b => {
+    const o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o);
+  });
+}
+
+function isTyped(actData) { return actData && typeof actData === 'object' && actData.types; }
+
+function getPrices(branch, activity, classType) {
+  if (!DATA[branch] || !DATA[branch][activity]) return null;
+  const ad = DATA[branch][activity];
+  if (isTyped(ad)) {
+    return classType && ad.types[classType] ? ad.types[classType] : null;
+  }
+  return Array.isArray(ad) ? ad : null;
+}
+
+function onBranchChange() {
+  const branch = document.getElementById('branch').value;
+  const actSel = document.getElementById('activity');
+  actSel.innerHTML = '<option value="">-- Select Activity --</option>';
+  document.getElementById('classTypeGroup').classList.add('hidden');
+  selectedFreq = null; resetFreqBtns();
+  if (!branch) { actSel.disabled = true; calculate(); return; }
+  actSel.disabled = false;
+  Object.keys(DATA[branch]).forEach(a => {
+    const o = document.createElement('option'); o.value = a; o.textContent = a; actSel.appendChild(o);
+  });
+  calculate();
+}
+
+function onActivityChange() {
+  selectedFreq = null;
+  const branch = document.getElementById('branch').value;
+  const activity = document.getElementById('activity').value;
+  const ctGroup = document.getElementById('classTypeGroup');
+  const ctSel = document.getElementById('classType');
+
+  if (branch && activity && DATA[branch] && isTyped(DATA[branch][activity])) {
+    ctGroup.classList.remove('hidden');
+    ctSel.innerHTML = '<option value="">-- Select Type --</option>';
+    Object.keys(DATA[branch][activity].types).forEach(t => {
+      const o = document.createElement('option'); o.value = t; o.textContent = t; ctSel.appendChild(o);
+    });
+    resetFreqBtns();
+  } else {
+    ctGroup.classList.add('hidden');
+    ctSel.innerHTML = '';
+    updateFreqBtns();
+  }
+  calculate();
+}
+
+function onClassTypeChange() {
+  selectedFreq = null;
+  updateFreqBtns();
+  calculate();
+}
+
+function updateFreqBtns() {
+  const branch = document.getElementById('branch').value;
+  const activity = document.getElementById('activity').value;
+  const classType = document.getElementById('classType').value;
+  const prices = getPrices(branch, activity, classType);
+  document.querySelectorAll('.freq-btn').forEach(btn => {
+    btn.classList.remove('active','disabled');
+    btn.querySelector('.price-tag').textContent = '';
+    const freq = parseInt(btn.dataset.freq);
+    const price = prices ? prices[freq-1] : null;
+    if (price === null || price === undefined) { btn.classList.add('disabled'); }
+    else { btn.querySelector('.price-tag').textContent = `AED ${price.toFixed(2)}/class`; }
+  });
+}
+
+function resetFreqBtns() {
+  document.querySelectorAll('.freq-btn').forEach(btn => {
+    btn.classList.remove('active'); btn.classList.add('disabled'); btn.querySelector('.price-tag').textContent = '';
+  });
+}
+
+document.querySelectorAll('.freq-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    if (this.classList.contains('disabled')) return;
+    document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    selectedFreq = parseInt(this.dataset.freq);
+    calculate();
+  });
+});
+
+function toggleAddon(cb) { cb.closest('.addon-item').classList.toggle('checked', cb.checked); calculate(); }
+
+function setDiscountType(type) {
+  discountType = type;
+  document.querySelectorAll('.discount-type-toggle button').forEach(b => { b.classList.toggle('active', b.textContent === type); });
+  document.getElementById('discount').placeholder = type === '%' ? 'Enter % discount' : 'Enter AED discount';
+  calculate();
+}
+
+function getAddons() {
+  const a = [];
+  document.querySelectorAll('.addon-item input[type="checkbox"]:checked').forEach(cb => {
+    const base = parseFloat(cb.dataset.base); a.push({name:cb.dataset.name, base, withVat: base*1.05});
+  });
+  return a;
+}
+
+function calculate() {
+  const branch = document.getElementById('branch').value;
+  const activity = document.getElementById('activity').value;
+  const classType = document.getElementById('classType').value;
+  const discountVal = parseFloat(document.getElementById('discount').value) || 0;
+  const totalEl = document.getElementById('totalPrice');
+  const breakdownEl = document.getElementById('breakdown');
+  const origEl = document.getElementById('originalPrice');
+  const msgBox = document.getElementById('messageBox');
+  const durCard = document.getElementById('durationCard');
+  const addons = getAddons();
+  const addonsTotal = addons.reduce((s,a) => s+a.withVat, 0);
+
+  const prices = getPrices(branch, activity, classType);
+  const needsType = branch && activity && DATA[branch] && isTyped(DATA[branch][activity]);
+
+  if (!branch || !activity || !selectedFreq || (needsType && !classType)) {
+    totalEl.innerHTML = '<span class="currency">AED</span> ' + (addonsTotal > 0 ? addonsTotal.toFixed(2) : '0.00');
+    breakdownEl.textContent = addonsTotal > 0 ? 'Add-ons only. Complete selections for full pricing.' : 'Select a branch, activity and frequency to see pricing';
+    origEl.classList.add('hidden'); durCard.classList.add('hidden');
+    msgBox.textContent = 'Complete the selections above to generate a message.';
+    return;
+  }
+
+  const ppc = prices[selectedFreq-1];
+  if (ppc === null || ppc === undefined) return;
+  const spm = selectedFreq * 4;
+  const pkgSub = ppc * spm;
+
+  let discAmt = 0, discLabel = '', discMsg = '';
+  if (discountType === '%') { discAmt = pkgSub*(discountVal/100); discLabel = discountVal>0?`${discountVal}% off`:''; discMsg = discountVal>0?`${discountVal}% discount`:''; }
+  else { discAmt = discountVal; discLabel = discountVal>0?`AED ${discountVal.toFixed(2)} off`:''; discMsg = discountVal>0?`AED ${discountVal.toFixed(2)} discount`:''; }
+
+  const pkgAfter = Math.max(0, pkgSub - discAmt);
+  const monthlyTotal = pkgAfter + addonsTotal;
+  const three = pkgAfter * 3 + addonsTotal;
+
+  durCard.classList.remove('hidden');
+  document.getElementById('dur1Price').textContent = `AED ${monthlyTotal.toFixed(2)}`;
+  document.getElementById('dur1Detail').textContent = 'per month';
+  document.getElementById('dur3Price').textContent = `AED ${three.toFixed(2)}`;
+  document.getElementById('dur3Detail').textContent = `total for 3 months (AED ${(three/3).toFixed(2)}/mo)`;
+
+  if (discAmt > 0) { origEl.textContent = `AED ${(pkgSub+addonsTotal).toFixed(2)}`; origEl.classList.remove('hidden'); }
+  else { origEl.classList.add('hidden'); }
+
+  totalEl.innerHTML = `<span class="currency">AED</span> ${monthlyTotal.toFixed(2)}`;
+
+  const actLabel = classType ? `${activity} (${classType})` : activity;
+  let bd = `Package: AED ${ppc.toFixed(2)}/class x ${selectedFreq}x/week x 4 weeks = AED ${pkgSub.toFixed(2)}`;
+  if (discLabel) bd += `<br><span class="discount-badge">${discLabel} ‚Äî saving AED ${discAmt.toFixed(2)}</span>`;
+  if (addons.length) bd += '<br>Add-ons: ' + addons.map(a=>`${a.name} (AED ${a.withVat.toFixed(2)})`).join(', ');
+  breakdownEl.innerHTML = bd;
+
+  // --- Friendly & Persuasive message ---
+  let f = `Dear Parent,\n\nThank you for your interest in our ${actLabel} programme at ${branch} branch!\n\nWe are excited to offer your child the opportunity to develop their skills, build confidence, and have fun with our expert coaches in a safe and supportive environment.`;
+  if (discAmt > 0) f += `\n\nGreat news - we have applied a special ${discMsg} to this package exclusively for you!`;
+  f += `\n\nHere is your personalised pricing for ${FREQ_LABELS[selectedFreq]}:`;
+  f += `\n\n1 MONTH PACKAGE`;
+  f += `\nTraining fee: AED ${ppc.toFixed(2)} per session x ${selectedFreq} sessions/week x 4 weeks = AED ${pkgSub.toFixed(2)}`;
+  if (discAmt > 0) { f += `\nYour discount (${discMsg}): -AED ${discAmt.toFixed(2)}\nPackage after discount: AED ${pkgAfter.toFixed(2)}`; }
+  if (addons.length) { f += '\nOne-time fees (inclusive of 5% VAT):'; addons.forEach(a => { f += `\n  - ${a.name}: AED ${a.withVat.toFixed(2)}`; }); }
+  f += `\nTotal: AED ${monthlyTotal.toFixed(2)}`;
+  f += `\n\n3 MONTH PACKAGE (Recommended)`;
+  f += `\nTraining fee: AED ${pkgAfter.toFixed(2)}/month x 3 months = AED ${(pkgAfter*3).toFixed(2)}`;
+  if (addons.length) { f += '\nOne-time fees (inclusive of 5% VAT):'; addons.forEach(a => { f += `\n  - ${a.name}: AED ${a.withVat.toFixed(2)}`; }); }
+  f += `\nTotal: AED ${three.toFixed(2)}`;
+  f += `\n\nWe highly recommend the 3-month package as it gives your child enough time to see real progress and build consistency in their training.`;
+  f += `\n\nSpots are limited and filling up fast - secure your child's place today!\n\nFor registration or any questions, feel free to reach out. We look forward to welcoming your child to our ${branch} family!`;
+  msgFriendly = f;
+
+  // --- Short & Professional message ---
+  let p = `Dear Parent,\n\nPlease find below the pricing for ${actLabel}, ${FREQ_LABELS[selectedFreq]} at ${branch} branch:`;
+  if (discAmt > 0) p += `\nA ${discMsg} has been applied.`;
+  p += `\n\n1 Month: AED ${monthlyTotal.toFixed(2)}`;
+  p += `\n  - AED ${ppc.toFixed(2)}/class x ${selectedFreq}x/week x 4 weeks = AED ${pkgSub.toFixed(2)}`;
+  if (discAmt > 0) p += `\n  - Discount: -AED ${discAmt.toFixed(2)}`;
+  if (addons.length) addons.forEach(a => { p += `\n  - ${a.name}: AED ${a.withVat.toFixed(2)}`; });
+  p += `\n\n3 Months: AED ${three.toFixed(2)}`;
+  p += `\n  - Package: AED ${pkgAfter.toFixed(2)} x 3 = AED ${(pkgAfter*3).toFixed(2)}`;
+  if (addons.length) addons.forEach(a => { p += `\n  - ${a.name}: AED ${a.withVat.toFixed(2)} (one-time)`; });
+  p += `\n\nPlease let us know if you would like to proceed with registration.\n\nBest regards`;
+  msgFormal = p;
+
+  msgBox.textContent = activeMsg === 'friendly' ? msgFriendly : msgFormal;
+}
+
+function switchMsg(type) {
+  activeMsg = type;
+  document.querySelectorAll('.msg-tab').forEach(t => t.classList.toggle('active', t.textContent.includes(type === 'friendly' ? 'Friendly' : 'Short')));
+  const box = document.getElementById('messageBox');
+  if (msgFriendly || msgFormal) box.textContent = type === 'friendly' ? msgFriendly : msgFormal;
+}
+
+function copyMessage() {
+  navigator.clipboard.writeText(document.getElementById('messageBox').textContent).then(() => {
+    const b = document.getElementById('copyBtn'); b.textContent='Copied!'; b.classList.add('copied');
+    setTimeout(()=>{b.textContent='Copy Message';b.classList.remove('copied');},2000);
+  });
+}
+
+// ===== ADMIN =====
+function showAdminLogin() {
+  const d = document.getElementById('adminLogin'); d.classList.remove('hidden'); d.style.display='flex';
+  document.getElementById('adminPwd').value=''; document.getElementById('loginError').classList.add('hidden');
+  document.getElementById('adminPwd').focus();
+}
+
+function doAdminLogin() {
+  if (document.getElementById('adminPwd').value === ADMIN_PWD) {
+    document.getElementById('adminLogin').classList.add('hidden');
+    document.getElementById('adminLogin').style.display='none';
+    document.getElementById('calcView').classList.add('hidden');
+    document.getElementById('adminView').classList.remove('hidden');
+    renderAdmin();
+  } else {
+    document.getElementById('loginError').classList.remove('hidden');
+  }
+}
+
+function exitAdmin() {
+  document.getElementById('adminView').classList.add('hidden');
+  document.getElementById('calcView').classList.remove('hidden');
+  populateBranches();
+  onBranchChange();
+}
+
+function renderAdmin() {
+  let html = '';
+  Object.keys(DATA).forEach(branch => {
+    html += `<div class="admin-section"><h3>${branch} <button class="admin-btn-del" onclick="deleteBranch('${branch}')">Delete Branch</button></h3>`;
+    html += '<table class="admin-table"><tr><th>Activity</th><th>Type</th><th>1x/week</th><th>2x/week</th><th>3x/week</th><th>4x/week</th><th></th></tr>';
+    Object.keys(DATA[branch]).forEach(act => {
+      const ad = DATA[branch][act];
+      if (isTyped(ad)) {
+        Object.keys(ad.types).forEach(t => {
+          const p = ad.types[t];
+          html += `<tr><td>${act}</td><td>${t}</td>`;
+          for (let i=0;i<4;i++) html += `<td><input type="number" step="0.01" value="${p[i]!==null?p[i]:''}" onchange="adminEdit('${branch}','${act}','${t}',${i},this.value)"></td>`;
+          html += `<td><button class="admin-btn-del" onclick="deleteActivity('${branch}','${act}')">Del</button></td></tr>`;
+        });
+      } else {
+        const p = ad;
+        html += `<tr><td>${act}</td><td>-</td>`;
+        for (let i=0;i<4;i++) html += `<td><input type="number" step="0.01" value="${p[i]!==null?p[i]:''}" onchange="adminEdit('${branch}','${act}',null,${i},this.value)"></td>`;
+        html += `<td><button class="admin-btn-del" onclick="deleteActivity('${branch}','${act}')">Del</button></td></tr>`;
+      }
+    });
+    html += '</table></div>';
+  });
+  document.getElementById('adminContent').innerHTML = html;
+}
+
+function adminEdit(branch, act, type, idx, val) {
+  const v = val === '' ? null : parseFloat(val);
+  if (type) DATA[branch][act].types[type][idx] = v;
+  else DATA[branch][act][idx] = v;
+}
+
+function deleteBranch(branch) {
+  if (confirm(`Delete branch "${branch}" and all its activities?`)) { delete DATA[branch]; renderAdmin(); }
+}
+
+function deleteActivity(branch, act) {
+  if (confirm(`Delete "${act}" from ${branch}?`)) { delete DATA[branch][act]; renderAdmin(); }
+}
+
+function addBranchActivity() {
+  const b = document.getElementById('newBranch').value.trim();
+  const a = document.getElementById('newActivity').value.trim();
+  const t = document.getElementById('newActType').value;
+  if (!b || !a) return alert('Enter both branch and activity name');
+  if (!DATA[b]) DATA[b] = {};
+  if (t === 'typed') DATA[b][a] = {types:{"Private":[null,null,null,null],"Semi Private":[null,null,null,null],"Group":[null,null,null,null]}};
+  else DATA[b][a] = [null,null,null,null];
+  document.getElementById('newBranch').value=''; document.getElementById('newActivity').value='';
+  renderAdmin();
+}
+
+async function saveAdmin() {
+  const st = document.getElementById('adminStatus');
+  st.className = 'admin-status'; st.textContent = 'Saving...';
+  try {
+    localStorage.setItem('priceData', JSON.stringify(DATA));
+    st.className = 'admin-status success'; st.textContent = 'Prices saved successfully!';
+    // Also try cloud save (may fail due to CORS - that's ok, localStorage is primary)
+    try { await fetch(BLOB_URL, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(DATA)}); } catch(e) {}
+  } catch(e) { st.className = 'admin-status error'; st.textContent = 'Failed to save. Try again.'; }
+  setTimeout(()=>{st.textContent='';st.className='';},3000);
+}
+
+loadPrices();
+</script>
+</body>
+</html>
