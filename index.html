@@ -451,13 +451,15 @@ function calculate() {
   let f = `Dear Parent,\n\nThank you for your interest in our ${actLabel} programme at ${branch} branch!\n\nWe are excited to offer your child the opportunity to develop their skills, build confidence, and have fun with our expert coaches in a safe and supportive environment.`;
   if (discAmt > 0) f += `\n\nGreat news - we have applied a special ${discMsg} to this package exclusively for you!`;
   f += `\n\nHere is your personalised pricing for ${FREQ_LABELS[selectedFreq]}:`;
-  f += `\n\n1 MONTH PACKAGE`;
+  f += `\n\n1 MONTH PACKAGE (${spm} sessions)`;
   f += `\nTraining fee: AED ${ppc.toFixed(2)} per session x ${selectedFreq} sessions/week x 4 weeks = AED ${pkgSub.toFixed(2)}`;
+  f += `\nTotal sessions included: ${spm} classes`;
   if (discAmt > 0) { f += `\nYour discount (${discMsg}): -AED ${discAmt.toFixed(2)}\nPackage after discount: AED ${pkgAfter.toFixed(2)}`; }
   if (addons.length) { f += '\nOne-time fees (inclusive of 5% VAT):'; addons.forEach(a => { f += `\n  - ${a.name}: AED ${a.withVat.toFixed(2)}`; }); }
   f += `\nTotal: AED ${monthlyTotal.toFixed(2)}`;
-  f += `\n\n3 MONTH PACKAGE (Recommended)`;
+  f += `\n\n3 MONTH PACKAGE (${spm*3} sessions)  - Recommended`;
   f += `\nTraining fee: AED ${pkgAfter.toFixed(2)}/month x 3 months = AED ${(pkgAfter*3).toFixed(2)}`;
+  f += `\nTotal sessions included: ${spm*3} classes`;
   if (addons.length) { f += '\nOne-time fees (inclusive of 5% VAT):'; addons.forEach(a => { f += `\n  - ${a.name}: AED ${a.withVat.toFixed(2)}`; }); }
   f += `\nTotal: AED ${three.toFixed(2)}`;
   f += `\n\nWe highly recommend the 3-month package as it gives your child enough time to see real progress and build consistency in their training.`;
@@ -467,12 +469,12 @@ function calculate() {
   // --- Short & Professional message ---
   let p = `Dear Parent,\n\nPlease find below the pricing for ${actLabel}, ${FREQ_LABELS[selectedFreq]} at ${branch} branch:`;
   if (discAmt > 0) p += `\nA ${discMsg} has been applied.`;
-  p += `\n\n1 Month: AED ${monthlyTotal.toFixed(2)}`;
-  p += `\n  - AED ${ppc.toFixed(2)}/class x ${selectedFreq}x/week x 4 weeks = AED ${pkgSub.toFixed(2)}`;
+  p += `\n\n1 Month (${spm} sessions): AED ${monthlyTotal.toFixed(2)}`;
+  p += `\n  - AED ${ppc.toFixed(2)}/class x ${selectedFreq}x/week x 4 weeks = AED ${pkgSub.toFixed(2)} (${spm} classes)`;
   if (discAmt > 0) p += `\n  - Discount: -AED ${discAmt.toFixed(2)}`;
   if (addons.length) addons.forEach(a => { p += `\n  - ${a.name}: AED ${a.withVat.toFixed(2)}`; });
-  p += `\n\n3 Months: AED ${three.toFixed(2)}`;
-  p += `\n  - Package: AED ${pkgAfter.toFixed(2)} x 3 = AED ${(pkgAfter*3).toFixed(2)}`;
+  p += `\n\n3 Months (${spm*3} sessions): AED ${three.toFixed(2)}`;
+  p += `\n  - Package: AED ${pkgAfter.toFixed(2)} x 3 months = AED ${(pkgAfter*3).toFixed(2)} (${spm*3} classes)`;
   if (addons.length) addons.forEach(a => { p += `\n  - ${a.name}: AED ${a.withVat.toFixed(2)} (one-time)`; });
   p += `\n\nPlease let us know if you would like to proceed with registration.\n\nBest regards`;
   msgFormal = p;
