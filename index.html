@@ -443,7 +443,7 @@ function calculate() {
 
   const actLabel = classType ? `${activity} (${classType})` : activity;
   let bd = `Package: AED ${ppc.toFixed(2)}/class x ${selectedFreq}x/week x 4 weeks = AED ${pkgSub.toFixed(2)}`;
-  if (discLabel) bd += `<br><span class="discount-badge">${discLabel} ‚Äî saving AED ${discAmt.toFixed(2)}</span>`;
+  if (discLabel) bd += `<br><span class="discount-badge">${discLabel} âÃÃ® saving AED ${discAmt.toFixed(2)}</span>`;
   if (addons.length) bd += '<br>Add-ons: ' + addons.map(a=>`${a.name} (AED ${a.withVat.toFixed(2)})`).join(', ');
   breakdownEl.innerHTML = bd;
 
