@@ -427,23 +427,28 @@ function calculate() {
   else { discAmt = discountVal; discLabel = discountVal>0?`AED ${discountVal.toFixed(2)} off`:''; discMsg = discountVal>0?`AED ${discountVal.toFixed(2)} discount`:''; }
 
   const pkgAfter = Math.max(0, pkgSub - discAmt);
-  const monthlyTotal = pkgAfter + addonsTotal;
-  const three = pkgAfter * 3 + addonsTotal;
+  const pkgVat = pkgAfter * 0.05;
+  const pkgWithVat = pkgAfter + pkgVat;
+  const monthlyTotal = pkgWithVat + addonsTotal;
+  const threeVat = (pkgAfter * 3) * 0.05;
+  const threeWithVat = (pkgAfter * 3) + threeVat;
+  const three = threeWithVat + addonsTotal;
 
   durCard.classList.remove('hidden');
   document.getElementById('dur1Price').textContent = `AED ${monthlyTotal.toFixed(2)}`;
-  document.getElementById('dur1Detail').textContent = 'per month';
+  document.getElementById('dur1Detail').textContent = 'per month (incl. VAT)';
   document.getElementById('dur3Price').textContent = `AED ${three.toFixed(2)}`;
-  document.getElementById('dur3Detail').textContent = `total for 3 months (AED ${(three/3).toFixed(2)}/mo)`;
+  document.getElementById('dur3Detail').textContent = `total for 3 months (incl. VAT)`;
 
-  if (discAmt > 0) { origEl.textContent = `AED ${(pkgSub+addonsTotal).toFixed(2)}`; origEl.classList.remove('hidden'); }
+  if (discAmt > 0) { origEl.textContent = `AED ${(pkgSub*1.05+addonsTotal).toFixed(2)}`; origEl.classList.remove('hidden'); }
   else { origEl.classList.add('hidden'); }
 
   totalEl.innerHTML = `<span class="currency">AED</span> ${monthlyTotal.toFixed(2)}`;
 
   const actLabel = classType ? `${activity} (${classType})` : activity;
   let bd = `Package: AED ${ppc.toFixed(2)}/class x ${selectedFreq}x/week x 4 weeks = AED ${pkgSub.toFixed(2)}`;
-  if (discLabel) bd += `<br><span class="discount-badge">${discLabel} âÃÃ® saving AED ${discAmt.toFixed(2)}</span>`;
+  if (discLabel) bd += `<br><span class="discount-badge">${discLabel} Ã¢ÂÂÃÂÃÂ® saving AED ${discAmt.toFixed(2)}</span>`;
+  bd += `<br>VAT @ 5%: AED ${pkgVat.toFixed(2)}`;
   if (addons.length) bd += '<br>Add-ons: ' + addons.map(a=>`${a.name} (AED ${a.withVat.toFixed(2)})`).join(', ');
   breakdownEl.innerHTML = bd;
 
@@ -456,12 +461,14 @@ function calculate() {
   f += `\nTotal sessions included: ${spm} classes`;
   if (discAmt > 0) { f += `\nYour discount (${discMsg}): -AED ${discAmt.toFixed(2)}\nPackage after discount: AED ${pkgAfter.toFixed(2)}`; }
   if (addons.length) { f += '\nOne-time fees (inclusive of 5% VAT):'; addons.forEach(a => { f += `\n  - ${a.name}: AED ${a.withVat.toFixed(2)}`; }); }
-  f += `\nTotal: AED ${monthlyTotal.toFixed(2)}`;
+  f += `\nVAT @ 5%: AED ${pkgVat.toFixed(2)}`;
+  f += `\nTotal (incl. VAT): AED ${monthlyTotal.toFixed(2)}`;
   f += `\n\n3 MONTH PACKAGE (${spm*3} sessions)  - Recommended`;
   f += `\nTraining fee: AED ${pkgAfter.toFixed(2)}/month x 3 months = AED ${(pkgAfter*3).toFixed(2)}`;
   f += `\nTotal sessions included: ${spm*3} classes`;
   if (addons.length) { f += '\nOne-time fees (inclusive of 5% VAT):'; addons.forEach(a => { f += `\n  - ${a.name}: AED ${a.withVat.toFixed(2)}`; }); }
-  f += `\nTotal: AED ${three.toFixed(2)}`;
+  f += `\nVAT @ 5%: AED ${threeVat.toFixed(2)}`;
+  f += `\nTotal (incl. VAT): AED ${three.toFixed(2)}`;
   f += `\n\nWe highly recommend the 3-month package as it gives your child enough time to see real progress and build consistency in their training.`;
   f += `\n\nSpots are limited and filling up fast - secure your child's place today!\n\nFor registration or any questions, feel free to reach out. We look forward to welcoming your child to our ${branch} family!`;
   msgFriendly = f;
@@ -472,9 +479,11 @@ function calculate() {
   p += `\n\n1 Month (${spm} sessions): AED ${monthlyTotal.toFixed(2)}`;
   p += `\n  - AED ${ppc.toFixed(2)}/class x ${selectedFreq}x/week x 4 weeks = AED ${pkgSub.toFixed(2)} (${spm} classes)`;
   if (discAmt > 0) p += `\n  - Discount: -AED ${discAmt.toFixed(2)}`;
+  p += `\n  - VAT @ 5%: AED ${pkgVat.toFixed(2)}`;
   if (addons.length) addons.forEach(a => { p += `\n  - ${a.name}: AED ${a.withVat.toFixed(2)}`; });
   p += `\n\n3 Months (${spm*3} sessions): AED ${three.toFixed(2)}`;
   p += `\n  - Package: AED ${pkgAfter.toFixed(2)} x 3 months = AED ${(pkgAfter*3).toFixed(2)} (${spm*3} classes)`;
+  p += `\n  - VAT @ 5%: AED ${threeVat.toFixed(2)}`;
   if (addons.length) addons.forEach(a => { p += `\n  - ${a.name}: AED ${a.withVat.toFixed(2)} (one-time)`; });
   p += `\n\nPlease let us know if you would like to proceed with registration.\n\nBest regards`;
   msgFormal = p;
