@@ -201,8 +201,8 @@
   <div class="message-card">
     <h2>Message for Customer</h2>
     <div class="msg-tabs">
-      <button class="msg-tab active" onclick="switchMsg('friendly')">Friendly & Persuasive</button>
-      <button class="msg-tab" onclick="switchMsg('formal')">Short & Professional</button>
+      <button class="msg-tab active" onclick="switchMsg('friendly')">Flash Offer Style</button>
+      <button class="msg-tab" onclick="switchMsg('formal')">Standard Quote</button>
     </div>
     <div class="message-box" id="messageBox">Complete the selections above to generate a message.</div>
     <button class="copy-btn" id="copyBtn" onclick="copyMessage()">Copy Message</button>
@@ -447,45 +447,57 @@ function calculate() {
 
   const actLabel = classType ? `${activity} (${classType})` : activity;
   let bd = `Package: AED ${ppc.toFixed(2)}/class x ${selectedFreq}x/week x 4 weeks = AED ${pkgSub.toFixed(2)}`;
-  if (discLabel) bd += `<br><span class="discount-badge">${discLabel} Ã¢ÂÂÃÂÃÂ® saving AED ${discAmt.toFixed(2)}</span>`;
+  if (discLabel) bd += `<br><span class="discount-badge">${discLabel} ÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ® saving AED ${discAmt.toFixed(2)}</span>`;
   bd += `<br>VAT @ 5%: AED ${pkgVat.toFixed(2)}`;
   if (addons.length) bd += '<br>Add-ons: ' + addons.map(a=>`${a.name} (AED ${a.withVat.toFixed(2)})`).join(', ');
   breakdownEl.innerHTML = bd;
 
-  // --- Friendly & Persuasive message ---
-  let f = `Dear Parent,\n\nThank you for your interest in our ${actLabel} programme at ${branch} branch!\n\nWe are excited to offer your child the opportunity to develop their skills, build confidence, and have fun with our expert coaches in a safe and supportive environment.`;
-  if (discAmt > 0) f += `\n\nGreat news - we have applied a special ${discMsg} to this package exclusively for you!`;
-  f += `\n\nHere is your personalised pricing for ${FREQ_LABELS[selectedFreq]}:`;
-  f += `\n\n1 MONTH PACKAGE (${spm} sessions)`;
-  f += `\nTraining fee: AED ${ppc.toFixed(2)} per session x ${selectedFreq} sessions/week x 4 weeks = AED ${pkgSub.toFixed(2)}`;
-  f += `\nTotal sessions included: ${spm} classes`;
-  if (discAmt > 0) { f += `\nYour discount (${discMsg}): -AED ${discAmt.toFixed(2)}\nPackage after discount: AED ${pkgAfter.toFixed(2)}`; }
-  if (addons.length) { f += '\nOne-time fees (inclusive of 5% VAT):'; addons.forEach(a => { f += `\n  - ${a.name}: AED ${a.withVat.toFixed(2)}`; }); }
-  f += `\nVAT @ 5%: AED ${pkgVat.toFixed(2)}`;
-  f += `\nTotal (incl. VAT): AED ${monthlyTotal.toFixed(2)}`;
-  f += `\n\n3 MONTH PACKAGE (${spm*3} sessions)  - Recommended`;
-  f += `\nTraining fee: AED ${pkgAfter.toFixed(2)}/month x 3 months = AED ${(pkgAfter*3).toFixed(2)}`;
-  f += `\nTotal sessions included: ${spm*3} classes`;
-  if (addons.length) { f += '\nOne-time fees (inclusive of 5% VAT):'; addons.forEach(a => { f += `\n  - ${a.name}: AED ${a.withVat.toFixed(2)}`; }); }
-  f += `\nVAT @ 5%: AED ${threeVat.toFixed(2)}`;
-  f += `\nTotal (incl. VAT): AED ${three.toFixed(2)}`;
-  f += `\n\nWe highly recommend the 3-month package as it gives your child enough time to see real progress and build consistency in their training.`;
-  f += `\n\nSpots are limited and filling up fast - secure your child's place today!\n\nFor registration or any questions, feel free to reach out. We look forward to welcoming your child to our ${branch} family!`;
+  // --- Flash Offer Style message ---
+  const actEmoji = activity.toLowerCase().includes('football') ? '\u26BD' : activity.toLowerCase().includes('basketball') ? '\uD83C\uDFC0' : activity.toLowerCase().includes('swim') ? '\uD83C\uDFCA' : activity.toLowerCase().includes('gymnast') ? '\uD83E\uDD38' : activity.toLowerCase().includes('tennis') ? '\uD83C\uDFBE' : '\uD83C\uDFC6';
+  const threeStd = pkgSub * 3;
+  const threeStdVat = threeStd * 0.05;
+  const threeStdTotal = threeStd + threeStdVat;
+  const savings = discAmt > 0 ? (threeStdTotal - three).toFixed(2) : '0.00';
+  let f = actEmoji + ' ' + actLabel + ' Flash Offer \u2013 ' + FREQ_LABELS[selectedFreq] + '! ' + actEmoji;
+  f += '\nI have some exciting news! Our training plan is renewed every 3 months, and I have a Golden Opportunity to secure the next term';
+  if (discAmt > 0) f += ' at an incredible rate!';
+  else f += ' at ' + branch + ' branch!';
+  f += '\n\nFor our ' + FREQ_LABELS[selectedFreq] + ' program:';
+  f += '\n\nStandard Price: ' + threeStdTotal.toFixed(2) + ' AED for ' + (spm*3) + ' classes';
+  if (discAmt > 0) {
+    f += '\n\nFlash Offer (' + discMsg + '): ' + three.toFixed(2) + ' AED! \uD83D\uDCC9\u2728';
+    f += '\n\nTotal Savings: ' + savings + ' AED! \uD83D\uDCB0\uD83D\uDD25';
+  } else {
+    f += '\n\nOur Price: ' + three.toFixed(2) + ' AED for ' + (spm*3) + ' classes (incl. 5% VAT)';
+  }
+  f += '\n\nPrice Breakdown:';
+  f += '\nTraining: AED ' + ppc.toFixed(2) + '/session x ' + selectedFreq + 'x/week x 12 weeks = AED ' + (pkgAfter*3).toFixed(2);
+  f += '\nVAT @ 5%: AED ' + threeVat.toFixed(2);
+  if (addons.length) {
+    f += '\n\nOne-time fees (incl. 5% VAT):';
+    addons.forEach(a => { f += '\n  \u2022 ' + a.name + ': AED ' + a.withVat.toFixed(2); });
+    f += '\n\nGrand Total: AED ' + three.toFixed(2);
+  }
+  f += '\n\nBy securing this ' + (spm*3) + '-class block now, you\u2019re ensuring consistent progress over the next 12 weeks at our best available rate.';
+  f += '\n\nSince this is a Flash Offer, spots at this rate are strictly limited! \u23F0';
+  f += '\n\nLet me know if you\u2019d like to lock this in \u2013 happy to help with registration!';
   msgFriendly = f;
 
-  // --- Short & Professional message ---
-  let p = `Dear Parent,\n\nPlease find below the pricing for ${actLabel}, ${FREQ_LABELS[selectedFreq]} at ${branch} branch:`;
-  if (discAmt > 0) p += `\nA ${discMsg} has been applied.`;
-  p += `\n\n1 Month (${spm} sessions): AED ${monthlyTotal.toFixed(2)}`;
-  p += `\n  - AED ${ppc.toFixed(2)}/class x ${selectedFreq}x/week x 4 weeks = AED ${pkgSub.toFixed(2)} (${spm} classes)`;
-  if (discAmt > 0) p += `\n  - Discount: -AED ${discAmt.toFixed(2)}`;
-  p += `\n  - VAT @ 5%: AED ${pkgVat.toFixed(2)}`;
-  if (addons.length) addons.forEach(a => { p += `\n  - ${a.name}: AED ${a.withVat.toFixed(2)}`; });
-  p += `\n\n3 Months (${spm*3} sessions): AED ${three.toFixed(2)}`;
-  p += `\n  - Package: AED ${pkgAfter.toFixed(2)} x 3 months = AED ${(pkgAfter*3).toFixed(2)} (${spm*3} classes)`;
-  p += `\n  - VAT @ 5%: AED ${threeVat.toFixed(2)}`;
-  if (addons.length) addons.forEach(a => { p += `\n  - ${a.name}: AED ${a.withVat.toFixed(2)} (one-time)`; });
-  p += `\n\nPlease let us know if you would like to proceed with registration.\n\nBest regards`;
+  // --- Standard Quote message ---
+  let p = 'Dear Parent,\n\nPlease find below the pricing for ' + actLabel + ', ' + FREQ_LABELS[selectedFreq] + ' at ' + branch + ' branch:';
+  if (discAmt > 0) p += '\nA ' + discMsg + ' has been applied.';
+  p += '\n\n--- 1 MONTH (' + spm + ' sessions) ---';
+  p += '\nTraining: AED ' + ppc.toFixed(2) + '/class x ' + selectedFreq + 'x/week x 4 weeks = AED ' + pkgSub.toFixed(2);
+  if (discAmt > 0) p += '\nDiscount: -AED ' + discAmt.toFixed(2);
+  p += '\nVAT @ 5%: AED ' + pkgVat.toFixed(2);
+  if (addons.length) addons.forEach(a => { p += '\n' + a.name + ': AED ' + a.withVat.toFixed(2); });
+  p += '\nTotal: AED ' + monthlyTotal.toFixed(2);
+  p += '\n\n--- 3 MONTHS (' + (spm*3) + ' sessions) ---';
+  p += '\nTraining: AED ' + pkgAfter.toFixed(2) + '/month x 3 = AED ' + (pkgAfter*3).toFixed(2);
+  p += '\nVAT @ 5%: AED ' + threeVat.toFixed(2);
+  if (addons.length) addons.forEach(a => { p += '\n' + a.name + ': AED ' + a.withVat.toFixed(2) + ' (one-time)'; });
+  p += '\nTotal: AED ' + three.toFixed(2);
+  p += '\n\nPlease let us know if you would like to proceed with registration.\n\nBest regards';
   msgFormal = p;
 
   msgBox.textContent = activeMsg === 'friendly' ? msgFriendly : msgFormal;
@@ -493,7 +505,7 @@ function calculate() {
 
 function switchMsg(type) {
   activeMsg = type;
-  document.querySelectorAll('.msg-tab').forEach(t => t.classList.toggle('active', t.textContent.includes(type === 'friendly' ? 'Friendly' : 'Short')));
+  document.querySelectorAll('.msg-tab').forEach(t => t.classList.toggle('active', t.textContent.includes(type === 'friendly' ? 'Flash' : 'Standard')));
   const box = document.getElementById('messageBox');
   if (msgFriendly || msgFormal) box.textContent = type === 'friendly' ? msgFriendly : msgFormal;
 }
