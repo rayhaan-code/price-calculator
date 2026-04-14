@@ -447,13 +447,14 @@ function calculate() {
 
   const actLabel = classType ? `${activity} (${classType})` : activity;
   let bd = `Package: AED ${ppc.toFixed(2)}/class x ${selectedFreq}x/week x 4 weeks = AED ${pkgSub.toFixed(2)}`;
-  if (discLabel) bd += `<br><span class="discount-badge">${discLabel} ÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂ® saving AED ${discAmt.toFixed(2)}</span>`;
+  if (discLabel) bd += `<br><span class="discount-badge">${discLabel} ÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ® saving AED ${discAmt.toFixed(2)}</span>`;
   bd += `<br>VAT @ 5%: AED ${pkgVat.toFixed(2)}`;
   if (addons.length) bd += '<br>Add-ons: ' + addons.map(a=>`${a.name} (AED ${a.withVat.toFixed(2)})`).join(', ');
   breakdownEl.innerHTML = bd;
 
   // --- Flash Offer Style message ---
   const actEmoji = activity.toLowerCase().includes('football') ? '\u26BD' : activity.toLowerCase().includes('basketball') ? '\uD83C\uDFC0' : activity.toLowerCase().includes('swim') ? '\uD83C\uDFCA' : activity.toLowerCase().includes('gymnast') ? '\uD83E\uDD38' : activity.toLowerCase().includes('tennis') ? '\uD83C\uDFBE' : '\uD83C\uDFC6';
+  const actBenefit = activity.toLowerCase().includes('football') ? 'improve their game IQ, ball control, and teamwork on the pitch' : activity.toLowerCase().includes('basketball') ? 'sharpen their handles, shooting, and court awareness' : activity.toLowerCase().includes('swim') ? 'improve their technique, stamina, and confidence in the water' : activity.toLowerCase().includes('gymnast') ? 'build strength, flexibility, and master new skills' : activity.toLowerCase().includes('tennis') ? 'develop their serve, footwork, and match strategy' : 'develop their skills, fitness, and confidence';
   const threeStd = pkgSub * 3;
   const threeStdVat = threeStd * 0.05;
   const threeStdTotal = threeStd + threeStdVat;
@@ -462,42 +463,48 @@ function calculate() {
   f += '\nI have some exciting news! Our training plan is renewed every 3 months, and I have a Golden Opportunity to secure the next term';
   if (discAmt > 0) f += ' at an incredible rate!';
   else f += ' at ' + branch + ' branch!';
-  f += '\n\nFor our ' + FREQ_LABELS[selectedFreq] + ' program:';
-  f += '\n\nStandard Price: ' + threeStdTotal.toFixed(2) + ' AED for ' + (spm*3) + ' classes';
+  f += '\n\nFor our ' + FREQ_LABELS[selectedFreq] + ' program (' + (spm*3) + ' classes over 12 weeks):';
+  f += '\n\n\uD83D\uDCB5 Standard Price: ' + threeStdTotal.toFixed(2) + ' AED for ' + (spm*3) + ' classes';
   if (discAmt > 0) {
-    f += '\n\nFlash Offer (' + discMsg + '): ' + three.toFixed(2) + ' AED! \uD83D\uDCC9\u2728';
-    f += '\n\nTotal Savings: ' + savings + ' AED! \uD83D\uDCB0\uD83D\uDD25';
+    f += '\n\n\uD83D\uDCA5 Flash Offer: ' + three.toFixed(2) + ' AED for ' + (spm*3) + ' classes! \uD83D\uDCC9\u2728';
+    f += '\n\n\uD83D\uDCB0 Amount Saved: ' + savings + ' AED! \uD83D\uDD25';
   } else {
-    f += '\n\nOur Price: ' + three.toFixed(2) + ' AED for ' + (spm*3) + ' classes (incl. 5% VAT)';
+    f += '\n\n\u2705 Our Price: ' + three.toFixed(2) + ' AED for ' + (spm*3) + ' classes (incl. 5% VAT)';
   }
-  f += '\n\nPrice Breakdown:';
+  f += '\n\n\uD83D\uDCCB Price Breakdown:';
   f += '\nTraining: AED ' + ppc.toFixed(2) + '/session x ' + selectedFreq + 'x/week x 12 weeks = AED ' + (pkgAfter*3).toFixed(2);
   f += '\nVAT @ 5%: AED ' + threeVat.toFixed(2);
   if (addons.length) {
-    f += '\n\nOne-time fees (incl. 5% VAT):';
+    f += '\n\n\uD83D\uDECD\uFE0F One-time fees (incl. 5% VAT):';
     addons.forEach(a => { f += '\n  \u2022 ' + a.name + ': AED ' + a.withVat.toFixed(2); });
-    f += '\n\nGrand Total: AED ' + three.toFixed(2);
+    f += '\n\n\uD83D\uDCB3 Grand Total: AED ' + three.toFixed(2);
   }
-  f += '\n\nBy securing this ' + (spm*3) + '-class block now, you\u2019re ensuring consistent progress over the next 12 weeks at our best available rate.';
+  f += '\n\nBy locking this in now, you\u2019re giving your child ' + (spm*3) + ' high-level coaching sessions to ' + actBenefit + '. It\u2019s the absolute best value for the upcoming 12 weeks! \uD83C\uDFC6';
   f += '\n\nSince this is a Flash Offer, spots at this rate are strictly limited! \u23F0';
-  f += '\n\nLet me know if you\u2019d like to lock this in \u2013 happy to help with registration!';
+  f += '\n\n\u2705 Shall I go ahead and lock this in? Let me know and I\u2019ll get the registration sorted right away!';
   msgFriendly = f;
 
   // --- Standard Quote message ---
-  let p = 'Dear Parent,\n\nPlease find below the pricing for ' + actLabel + ', ' + FREQ_LABELS[selectedFreq] + ' at ' + branch + ' branch:';
-  if (discAmt > 0) p += '\nA ' + discMsg + ' has been applied.';
-  p += '\n\n--- 1 MONTH (' + spm + ' sessions) ---';
+  const actBenefit2 = activity.toLowerCase().includes('football') ? 'developing game intelligence, technique, and teamwork' : activity.toLowerCase().includes('basketball') ? 'building court skills, shooting accuracy, and game sense' : activity.toLowerCase().includes('swim') ? 'building water confidence, stroke technique, and endurance' : activity.toLowerCase().includes('gymnast') ? 'developing strength, flexibility, and coordination' : activity.toLowerCase().includes('tennis') ? 'improving serve power, footwork, and rally consistency' : 'building skills, fitness, and confidence';
+  let p = actEmoji + ' ' + actLabel + ' \u2013 ' + FREQ_LABELS[selectedFreq] + ' at ' + branch + ' ' + actEmoji;
+  p += '\n\nDear Parent,';
+  if (discAmt > 0) p += '\n\n\uD83C\uDF1F A special offer has been applied \u2013 see your savings below!';
+  p += '\n\n\uD83D\uDCC5 1 MONTH (' + spm + ' sessions)';
+  p += '\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500';
   p += '\nTraining: AED ' + ppc.toFixed(2) + '/class x ' + selectedFreq + 'x/week x 4 weeks = AED ' + pkgSub.toFixed(2);
-  if (discAmt > 0) p += '\nDiscount: -AED ' + discAmt.toFixed(2);
+  if (discAmt > 0) p += '\n\uD83D\uDCB0 Amount Saved: AED ' + discAmt.toFixed(2);
   p += '\nVAT @ 5%: AED ' + pkgVat.toFixed(2);
   if (addons.length) addons.forEach(a => { p += '\n' + a.name + ': AED ' + a.withVat.toFixed(2); });
-  p += '\nTotal: AED ' + monthlyTotal.toFixed(2);
-  p += '\n\n--- 3 MONTHS (' + (spm*3) + ' sessions) ---';
+  p += '\n\u2705 Total: AED ' + monthlyTotal.toFixed(2);
+  p += '\n\n\uD83D\uDCC5 3 MONTHS (' + (spm*3) + ' sessions) \u2B50 Recommended';
+  p += '\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500';
   p += '\nTraining: AED ' + pkgAfter.toFixed(2) + '/month x 3 = AED ' + (pkgAfter*3).toFixed(2);
+  if (discAmt > 0) p += '\n\uD83D\uDCB0 Amount Saved: AED ' + (discAmt*3).toFixed(2);
   p += '\nVAT @ 5%: AED ' + threeVat.toFixed(2);
   if (addons.length) addons.forEach(a => { p += '\n' + a.name + ': AED ' + a.withVat.toFixed(2) + ' (one-time)'; });
-  p += '\nTotal: AED ' + three.toFixed(2);
-  p += '\n\nPlease let us know if you would like to proceed with registration.\n\nBest regards';
+  p += '\n\u2705 Total: AED ' + three.toFixed(2);
+  p += '\n\n\uD83C\uDFC6 The 3-month program is perfect for ' + actBenefit2 + ' with consistent weekly training.';
+  p += '\n\n\uD83D\uDC49 Would you like to proceed with registration? I can get everything set up for you right away!';
   msgFormal = p;
 
   msgBox.textContent = activeMsg === 'friendly' ? msgFriendly : msgFormal;
