@@ -102,6 +102,9 @@
   .admin-section h3 { margin-bottom: 0.75rem; color: #0f3460; }
   .admin-new-row { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; align-items: center; }
   .admin-new-row input, .admin-new-row select { padding: 0.4rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem; }
+  .dur-tag { display: inline-block; font-size: 0.65rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: 4px; color: white; }
+  .dur-tag-1m { background: #3498db; }
+  .dur-tag-3m { background: #27ae60; }
 
   @media (max-width: 500px) {
     .freq-grid { grid-template-columns: repeat(2, 1fr); }
@@ -171,8 +174,8 @@
   </div>
 
   <div class="card">
+    <h2>Discount (applied to package only)</h2>
     <div class="form-group" style="margin-bottom:1rem">
-      <h2>Discount (applied to package only)</h2>
       <div class="discount-type-toggle">
         <button class="active" onclick="setDiscountType('%')">%</button>
         <button onclick="setDiscountType('AED')">AED</button>
@@ -247,95 +250,124 @@
 </div>
 
 <script>
-const BLOB_ID = '019d7d11-3ef6-79e6-8b1a-b0c58ef3450c';
-const BLOB_URL = `https://jsonblob.com/api/jsonBlob/${BLOB_ID}`;
-const ADMIN_PWD = 'admin123';
-const FREQ_LABELS = {1:'1x per week',2:'2x per week',3:'3x per week',4:'4x per week'};
+var BLOB_ID = '019d7d11-3ef6-79e6-8b1a-b0c58ef3450c';
+var BLOB_URL = 'https://jsonblob.com/api/jsonBlob/' + BLOB_ID;
+var ADMIN_PWD = 'admin123';
+var FREQ_LABELS = {1:'1x per week',2:'2x per week',3:'3x per week',4:'4x per week'};
 
-const DEFAULT_DATA = {
-  "Nasma":   { "Football": [80,70,60,50], "Swimming": {"types":{"Group":[75,65,60,null],"Semi Private":[null,null,null,null],"Private":[null,null,null,null]}} },
-  "Taawun":  { "Football": [80,70,60,null], "Gymnastics": [60,55,50,null] },
-  "Majaz":   { "Football": [60,50,43.33,40], "Gymnastics": [60,55,50,null], "Basketball": [60,50,43.33,40], "Swimming": {"types":{"Group":[60,55,null,null],"Semi Private":[null,null,null,null],"Private":[null,null,null,null]}} },
-  "Ajman":   { "Football": [60,50,37.50,null], "Gymnastics": [60,55,43,null] },
-  "Tilal":   { "Football": [70,55,null,null], "Gymnastics": [60,55,50,null], "Basketball": [60,55,null,null], "Swimming": {"types":{"Group":[80,67.50,61.67,null],"Semi Private":[null,null,null,null],"Private":[null,null,null,null]}} },
-  "AUS":     { "Football": [null,65,null,null] },
-  "Karama":  { "Gymnastics": [60,55,50,null], "Gymnastics 2Hr": [105,90,82.50,null], "Basketball": [60,55,50,null], "Adults": [60,55,null,null] },
-  "Mirdif":  { "Gymnastics": [75,75,null,null] },
-  "Ryan":    { "Swimming": {"types":{"Group":[75,65,60,null],"Semi Private":[null,null,null,null],"Private":[null,null,null,null]}} },
-  "Tennis":  { "Tennis": {"types":{"Private":[225,null,null,null],"Semi Private":[140,null,null,null],"Group":[85,null,null,null]}} }
+var DEFAULT_DATA = {
+  "Nasma":   { "Football": {"1m":[80,70,60,50],"3m":[80,70,60,50]}, "Swimming": {"types":{"Group":{"1m":[75,65,60,null],"3m":[75,65,60,null]},"Semi Private":{"1m":[null,null,null,null],"3m":[null,null,null,null]},"Private":{"1m":[null,null,null,null],"3m":[null,null,null,null]}}} },
+  "Taawun":  { "Football": {"1m":[80,70,60,null],"3m":[80,70,60,null]}, "Gymnastics": {"1m":[60,55,50,null],"3m":[60,55,50,null]} },
+  "Majaz":   { "Football": {"1m":[60,50,43.33,40],"3m":[60,50,43.33,40]}, "Gymnastics": {"1m":[60,55,50,null],"3m":[60,55,50,null]}, "Basketball": {"1m":[60,50,43.33,40],"3m":[60,50,43.33,40]}, "Swimming": {"types":{"Group":{"1m":[60,55,null,null],"3m":[60,55,null,null]},"Semi Private":{"1m":[null,null,null,null],"3m":[null,null,null,null]},"Private":{"1m":[null,null,null,null],"3m":[null,null,null,null]}}} },
+  "Ajman":   { "Football": {"1m":[60,50,37.50,null],"3m":[60,50,37.50,null]}, "Gymnastics": {"1m":[60,55,43,null],"3m":[60,55,43,null]} },
+  "Tilal":   { "Football": {"1m":[70,55,null,null],"3m":[70,55,null,null]}, "Gymnastics": {"1m":[60,55,50,null],"3m":[60,55,50,null]}, "Basketball": {"1m":[60,55,null,null],"3m":[60,55,null,null]}, "Swimming": {"types":{"Group":{"1m":[80,67.50,61.67,null],"3m":[80,67.50,61.67,null]},"Semi Private":{"1m":[null,null,null,null],"3m":[null,null,null,null]},"Private":{"1m":[null,null,null,null],"3m":[null,null,null,null]}}} },
+  "AUS":     { "Football": {"1m":[null,65,null,null],"3m":[null,65,null,null]} },
+  "Karama":  { "Gymnastics": {"1m":[60,55,50,null],"3m":[60,55,50,null]}, "Gymnastics 2Hr": {"1m":[105,90,82.50,null],"3m":[105,90,82.50,null]}, "Basketball": {"1m":[60,55,50,null],"3m":[60,55,50,null]}, "Adults": {"1m":[60,55,null,null],"3m":[60,55,null,null]} },
+  "Mirdif":  { "Gymnastics": {"1m":[75,75,null,null],"3m":[75,75,null,null]} },
+  "Ryan":    { "Swimming": {"types":{"Group":{"1m":[75,65,60,null],"3m":[75,65,60,null]},"Semi Private":{"1m":[null,null,null,null],"3m":[null,null,null,null]},"Private":{"1m":[null,null,null,null],"3m":[null,null,null,null]}}} },
+  "Tennis":  { "Tennis": {"types":{"Private":{"1m":[225,null,null,null],"3m":[225,null,null,null]},"Semi Private":{"1m":[140,null,null,null],"3m":[140,null,null,null]},"Group":{"1m":[85,null,null,null],"3m":[85,null,null,null]}}} }
 };
 
-let DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
-let selectedFreq = null;
-let discountType = '%';
-let msgFriendly = '';
-let msgFormal = '';
-let activeMsg = 'friendly';
+var DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
+var selectedFreq = null;
+var discountType = '%';
+var msgFriendly = '';
+var msgFormal = '';
+var activeMsg = 'friendly';
 
-// Load prices - try localStorage first, then cloud, fall back to embedded defaults
-async function loadPrices() {
-  const saved = localStorage.getItem('priceData');
-  if (saved) {
-    try { DATA = JSON.parse(saved); } catch(e) {}
-  }
-  if (Object.keys(DATA).length === 0) {
-    try {
-      const r = await fetch(BLOB_URL);
-      if (r.ok) DATA = await r.json();
-    } catch(e) {
-      DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
+/* Detect if activity data uses the old flat array format */
+function isTyped(actData) { return actData && typeof actData === 'object' && actData.types; }
+function isDurFormat(v) { return v && typeof v === 'object' && v['1m'] && Array.isArray(v['1m']); }
+
+/* Migrate old data format (flat arrays) to new {1m:[], 3m:[]} format */
+function migrateData(data) {
+  for (var branch in data) {
+    for (var act in data[branch]) {
+      var ad = data[branch][act];
+      if (isTyped(ad)) {
+        for (var t in ad.types) {
+          if (Array.isArray(ad.types[t])) {
+            ad.types[t] = { '1m': ad.types[t], '3m': ad.types[t].slice() };
+          }
+        }
+      } else if (Array.isArray(ad)) {
+        data[branch][act] = { '1m': ad, '3m': ad.slice() };
+      }
     }
   }
+  return data;
+}
+
+/* Load prices - try localStorage first, fall back to embedded defaults */
+function loadPrices() {
+  try {
+    var saved = localStorage.getItem('priceData');
+    if (saved) {
+      try {
+        var parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+          DATA = parsed;
+        }
+      } catch(e) { /* ignore bad localStorage */ }
+    }
+  } catch(e) { /* localStorage unavailable */ }
+
+  /* Migrate old format if needed */
+  DATA = migrateData(DATA);
+
   document.getElementById('loadingMsg').classList.add('hidden');
   document.getElementById('calcContent').classList.remove('hidden');
   populateBranches();
 }
 
 function populateBranches() {
-  const sel = document.getElementById('branch');
+  var sel = document.getElementById('branch');
   sel.innerHTML = '<option value="">-- Select Branch --</option>';
-  Object.keys(DATA).forEach(b => {
-    const o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o);
+  Object.keys(DATA).forEach(function(b) {
+    var o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o);
   });
 }
 
-function isTyped(actData) { return actData && typeof actData === 'object' && actData.types; }
-
-function getPrices(branch, activity, classType) {
+function getPrices(branch, activity, classType, duration) {
+  duration = duration || '1m';
   if (!DATA[branch] || !DATA[branch][activity]) return null;
-  const ad = DATA[branch][activity];
+  var ad = DATA[branch][activity];
   if (isTyped(ad)) {
-    return classType && ad.types[classType] ? ad.types[classType] : null;
+    if (!classType || !ad.types[classType]) return null;
+    var tp = ad.types[classType];
+    if (isDurFormat(tp)) return tp[duration];
+    return Array.isArray(tp) ? tp : null;
   }
+  if (isDurFormat(ad)) return ad[duration];
   return Array.isArray(ad) ? ad : null;
 }
 
 function onBranchChange() {
-  const branch = document.getElementById('branch').value;
-  const actSel = document.getElementById('activity');
+  var branch = document.getElementById('branch').value;
+  var actSel = document.getElementById('activity');
   actSel.innerHTML = '<option value="">-- Select Activity --</option>';
   document.getElementById('classTypeGroup').classList.add('hidden');
   selectedFreq = null; resetFreqBtns();
   if (!branch) { actSel.disabled = true; calculate(); return; }
   actSel.disabled = false;
-  Object.keys(DATA[branch]).forEach(a => {
-    const o = document.createElement('option'); o.value = a; o.textContent = a; actSel.appendChild(o);
+  Object.keys(DATA[branch]).forEach(function(a) {
+    var o = document.createElement('option'); o.value = a; o.textContent = a; actSel.appendChild(o);
   });
   calculate();
 }
 
 function onActivityChange() {
   selectedFreq = null;
-  const branch = document.getElementById('branch').value;
-  const activity = document.getElementById('activity').value;
-  const ctGroup = document.getElementById('classTypeGroup');
-  const ctSel = document.getElementById('classType');
+  var branch = document.getElementById('branch').value;
+  var activity = document.getElementById('activity').value;
+  var ctGroup = document.getElementById('classTypeGroup');
+  var ctSel = document.getElementById('classType');
 
   if (branch && activity && DATA[branch] && isTyped(DATA[branch][activity])) {
     ctGroup.classList.remove('hidden');
     ctSel.innerHTML = '<option value="">-- Select Type --</option>';
-    Object.keys(DATA[branch][activity].types).forEach(t => {
-      const o = document.createElement('option'); o.value = t; o.textContent = t; ctSel.appendChild(o);
+    Object.keys(DATA[branch][activity].types).forEach(function(t) {
+      var o = document.createElement('option'); o.value = t; o.textContent = t; ctSel.appendChild(o);
     });
     resetFreqBtns();
   } else {
@@ -353,30 +385,30 @@ function onClassTypeChange() {
 }
 
 function updateFreqBtns() {
-  const branch = document.getElementById('branch').value;
-  const activity = document.getElementById('activity').value;
-  const classType = document.getElementById('classType').value;
-  const prices = getPrices(branch, activity, classType);
-  document.querySelectorAll('.freq-btn').forEach(btn => {
+  var branch = document.getElementById('branch').value;
+  var activity = document.getElementById('activity').value;
+  var classType = document.getElementById('classType').value;
+  var prices1m = getPrices(branch, activity, classType, '1m');
+  document.querySelectorAll('.freq-btn').forEach(function(btn) {
     btn.classList.remove('active','disabled');
     btn.querySelector('.price-tag').textContent = '';
-    const freq = parseInt(btn.dataset.freq);
-    const price = prices ? prices[freq-1] : null;
+    var freq = parseInt(btn.dataset.freq);
+    var price = prices1m ? prices1m[freq-1] : null;
     if (price === null || price === undefined) { btn.classList.add('disabled'); }
-    else { btn.querySelector('.price-tag').textContent = `AED ${price.toFixed(2)}/class`; }
+    else { btn.querySelector('.price-tag').textContent = 'AED ' + price.toFixed(2) + '/class'; }
   });
 }
 
 function resetFreqBtns() {
-  document.querySelectorAll('.freq-btn').forEach(btn => {
+  document.querySelectorAll('.freq-btn').forEach(function(btn) {
     btn.classList.remove('active'); btn.classList.add('disabled'); btn.querySelector('.price-tag').textContent = '';
   });
 }
 
-document.querySelectorAll('.freq-btn').forEach(btn => {
+document.querySelectorAll('.freq-btn').forEach(function(btn) {
   btn.addEventListener('click', function() {
     if (this.classList.contains('disabled')) return;
-    document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.freq-btn').forEach(function(b) { b.classList.remove('active'); });
     this.classList.add('active');
     selectedFreq = parseInt(this.dataset.freq);
     calculate();
@@ -387,36 +419,35 @@ function toggleAddon(cb) { cb.closest('.addon-item').classList.toggle('checked',
 
 function setDiscountType(type) {
   discountType = type;
-  document.querySelectorAll('.discount-type-toggle button').forEach(b => { b.classList.toggle('active', b.textContent === type); });
-  document.getElementById('discount1').placeholder = '0';
-  document.getElementById('discount3').placeholder = '0';
+  document.querySelectorAll('.discount-type-toggle button').forEach(function(b) { b.classList.toggle('active', b.textContent === type); });
   calculate();
 }
 
 function getAddons() {
-  const a = [];
-  document.querySelectorAll('.addon-item input[type="checkbox"]:checked').forEach(cb => {
-    const base = parseFloat(cb.dataset.base); a.push({name:cb.dataset.name, base, withVat: base*1.05});
+  var a = [];
+  document.querySelectorAll('.addon-item input[type="checkbox"]:checked').forEach(function(cb) {
+    var base = parseFloat(cb.dataset.base); a.push({name:cb.dataset.name, base:base, withVat: base*1.05});
   });
   return a;
 }
 
 function calculate() {
-  const branch = document.getElementById('branch').value;
-  const activity = document.getElementById('activity').value;
-  const classType = document.getElementById('classType').value;
-  const disc1Val = parseFloat(document.getElementById('discount1').value) || 0;
-  const disc3Val = parseFloat(document.getElementById('discount3').value) || 0;
-  const totalEl = document.getElementById('totalPrice');
-  const breakdownEl = document.getElementById('breakdown');
-  const origEl = document.getElementById('originalPrice');
-  const msgBox = document.getElementById('messageBox');
-  const durCard = document.getElementById('durationCard');
-  const addons = getAddons();
-  const addonsTotal = addons.reduce((s,a) => s+a.withVat, 0);
+  var branch = document.getElementById('branch').value;
+  var activity = document.getElementById('activity').value;
+  var classType = document.getElementById('classType').value;
+  var disc1Val = parseFloat(document.getElementById('discount1').value) || 0;
+  var disc3Val = parseFloat(document.getElementById('discount3').value) || 0;
+  var totalEl = document.getElementById('totalPrice');
+  var breakdownEl = document.getElementById('breakdown');
+  var origEl = document.getElementById('originalPrice');
+  var msgBox = document.getElementById('messageBox');
+  var durCard = document.getElementById('durationCard');
+  var addons = getAddons();
+  var addonsTotal = addons.reduce(function(s,a) { return s+a.withVat; }, 0);
 
-  const prices = getPrices(branch, activity, classType);
-  const needsType = branch && activity && DATA[branch] && isTyped(DATA[branch][activity]);
+  var prices1m = getPrices(branch, activity, classType, '1m');
+  var prices3m = getPrices(branch, activity, classType, '3m');
+  var needsType = branch && activity && DATA[branch] && isTyped(DATA[branch][activity]);
 
   if (!branch || !activity || !selectedFreq || (needsType && !classType)) {
     totalEl.innerHTML = '<span class="currency">AED</span> ' + (addonsTotal > 0 ? addonsTotal.toFixed(2) : '0.00');
@@ -426,112 +457,115 @@ function calculate() {
     return;
   }
 
-  const ppc = prices[selectedFreq-1];
-  if (ppc === null || ppc === undefined) return;
-  const spm = selectedFreq * 4;
-  const pkgSub = ppc * spm;
+  var ppc1m = prices1m ? prices1m[selectedFreq-1] : null;
+  var ppc3m = prices3m ? prices3m[selectedFreq-1] : null;
+  if (ppc1m === null || ppc1m === undefined) return;
+  /* If 3m price not set, fall back to 1m price */
+  if (ppc3m === null || ppc3m === undefined) ppc3m = ppc1m;
 
-  let disc1Amt=0,disc1Msg='';
-  if(discountType==='%'){disc1Amt=pkgSub*(disc1Val/100);disc1Msg=disc1Val>0?disc1Val+'%':'';}else{disc1Amt=disc1Val;disc1Msg=disc1Val>0?'AED '+disc1Val.toFixed(2):'';}
-  const pkgSub3=pkgSub*3;
-  let disc3Amt=0,disc3Msg='';
-  if(discountType==='%'){disc3Amt=pkgSub3*(disc3Val/100);disc3Msg=disc3Val>0?disc3Val+'%':'';}else{disc3Amt=disc3Val;disc3Msg=disc3Val>0?'AED '+disc3Val.toFixed(2):'';}
-  const discAmt=disc1Amt;const discMsg=disc1Msg;
+  var spm = selectedFreq * 4;
 
-  const pkgAfter = Math.max(0, pkgSub - disc1Amt);
-  const pkgVat = pkgAfter * 0.05;
-  const pkgWithVat = pkgAfter + pkgVat;
-  const monthlyTotal = pkgWithVat + addonsTotal;
-  const pkg3After = Math.max(0, pkgSub3 - disc3Amt);
-  const threeVat = pkg3After * 0.05;
-  const threeWithVat = pkg3After + threeVat;
-  const three = threeWithVat + addonsTotal;
+  /* --- 1 MONTH --- */
+  var pkgSub1 = ppc1m * spm;
+  var disc1Amt = 0, disc1Label = '', disc1Msg = '';
+  if (discountType === '%') { disc1Amt = pkgSub1*(disc1Val/100); disc1Label = disc1Val>0 ? disc1Val+'% off' : ''; disc1Msg = disc1Val>0 ? disc1Val+'%' : ''; }
+  else { disc1Amt = disc1Val; disc1Label = disc1Val>0 ? 'AED '+disc1Val.toFixed(2)+' off' : ''; disc1Msg = disc1Val>0 ? 'AED '+disc1Val.toFixed(2) : ''; }
+  var pkgAfter1 = Math.max(0, pkgSub1 - disc1Amt);
+  var pkgVat1 = pkgAfter1 * 0.05;
+  var pkgWithVat1 = pkgAfter1 + pkgVat1;
+  var monthlyTotal = pkgWithVat1 + addonsTotal;
+
+  /* --- 3 MONTHS --- */
+  var pkgSub3 = ppc3m * spm * 3;
+  var disc3Amt = 0, disc3Label = '', disc3Msg = '';
+  if (discountType === '%') { disc3Amt = pkgSub3*(disc3Val/100); disc3Label = disc3Val>0 ? disc3Val+'% off' : ''; disc3Msg = disc3Val>0 ? disc3Val+'%' : ''; }
+  else { disc3Amt = disc3Val; disc3Label = disc3Val>0 ? 'AED '+disc3Val.toFixed(2)+' off' : ''; disc3Msg = disc3Val>0 ? 'AED '+disc3Val.toFixed(2) : ''; }
+  var pkg3After = Math.max(0, pkgSub3 - disc3Amt);
+  var threeVat = pkg3After * 0.05;
+  var threeWithVat = pkg3After + threeVat;
+  var three = threeWithVat + addonsTotal;
 
   durCard.classList.remove('hidden');
-  document.getElementById('dur1Price').textContent = `AED ${monthlyTotal.toFixed(2)}`;
+  document.getElementById('dur1Price').textContent = 'AED ' + monthlyTotal.toFixed(2);
   document.getElementById('dur1Detail').textContent = 'per month (incl. VAT)';
-  document.getElementById('dur3Price').textContent = `AED ${three.toFixed(2)}`;
-  document.getElementById('dur3Detail').textContent = `total for 3 months (incl. VAT)`;
+  document.getElementById('dur3Price').textContent = 'AED ' + three.toFixed(2);
+  document.getElementById('dur3Detail').textContent = 'total for 3 months (incl. VAT)';
 
-  if ((disc1Amt > 0 || disc3Amt > 0)) { origEl.textContent = `AED ${(pkgSub*1.05+addonsTotal).toFixed(2)}`; origEl.classList.remove('hidden'); }
+  /* Show original price only if any discount applied */
+  var origMonthly = pkgSub1*1.05 + addonsTotal;
+  if (disc1Amt > 0) { origEl.textContent = 'AED ' + origMonthly.toFixed(2); origEl.classList.remove('hidden'); }
   else { origEl.classList.add('hidden'); }
 
-  totalEl.innerHTML = `<span class="currency">AED</span> ${monthlyTotal.toFixed(2)}`;
+  totalEl.innerHTML = '<span class="currency">AED</span> ' + monthlyTotal.toFixed(2);
 
-  const actLabel = classType ? `${activity} (${classType})` : activity;
-  let bd = `Package: AED ${ppc.toFixed(2)}/class x ${selectedFreq}x/week x 4 weeks = AED ${pkgSub.toFixed(2)}`;
-  if (disc1Amt > 0) bd += `<br><span class="discount-badge">1mo: -AED ${disc1Amt.toFixed(2)}</span>`;
-  if (disc3Amt > 0) bd += `<br><span class="discount-badge">3mo: -AED ${disc3Amt.toFixed(2)}` ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ® saving AED ${discAmt.toFixed(2)}</span>`;
-  bd += `<br>VAT @ 5%: AED ${pkgVat.toFixed(2)}`;
-  if (addons.length) bd += '<br>Add-ons: ' + addons.map(a=>`${a.name} (AED ${a.withVat.toFixed(2)})`).join(', ');
+  var actLabel = classType ? activity+' ('+classType+')' : activity;
+  var bd = 'Package (1mo): AED ' + ppc1m.toFixed(2) + '/class x ' + selectedFreq + 'x/week x 4 weeks = AED ' + pkgSub1.toFixed(2);
+  if (ppc3m !== ppc1m) bd += '<br>Package (3mo): AED ' + ppc3m.toFixed(2) + '/class x ' + selectedFreq + 'x/week x 12 weeks = AED ' + pkgSub3.toFixed(2);
+  if (disc1Amt > 0) bd += '<br><span class="discount-badge">1mo: ' + disc1Label + ' (-AED ' + disc1Amt.toFixed(2) + ')</span>';
+  if (disc3Amt > 0) bd += '<br><span class="discount-badge">3mo: ' + disc3Label + ' (-AED ' + disc3Amt.toFixed(2) + ')</span>';
+  bd += '<br>VAT @ 5%: AED ' + pkgVat1.toFixed(2) + ' (1mo) / AED ' + threeVat.toFixed(2) + ' (3mo)';
+  if (addons.length) bd += '<br>Add-ons: ' + addons.map(function(a) { return a.name+' (AED '+a.withVat.toFixed(2)+')'; }).join(', ');
   breakdownEl.innerHTML = bd;
 
-  // --- Flash Offer Style message ---
-  const actEmoji = activity.toLowerCase().includes('football') ? '\u26BD' : activity.toLowerCase().includes('basketball') ? '\uD83C\uDFC0' : activity.toLowerCase().includes('swim') ? '\uD83C\uDFCA' : activity.toLowerCase().includes('gymnast') ? '\uD83E\uDD38' : activity.toLowerCase().includes('tennis') ? '\uD83C\uDFBE' : '\uD83C\uDFC6';
-  const actBenefit = activity.toLowerCase().includes('football') ? 'improve their game IQ, ball control, and teamwork on the pitch' : activity.toLowerCase().includes('basketball') ? 'sharpen their handles, shooting, and court awareness' : activity.toLowerCase().includes('swim') ? 'improve their technique, stamina, and confidence in the water' : activity.toLowerCase().includes('gymnast') ? 'build strength, flexibility, and master new skills' : activity.toLowerCase().includes('tennis') ? 'develop their serve, footwork, and match strategy' : 'develop their skills, fitness, and confidence';
-  const oneStdTotal = (pkgSub * 1.05) + addonsTotal;
-  const oneSaved = disc1Amt > 0 ? (oneStdTotal - monthlyTotal).toFixed(2) : '0.00';
-  const threeStdTotal2 = (pkgSub3 * 1.05) + addonsTotal;
-  const threeSaved = disc3Amt > 0 ? (threeStdTotal2 - three).toFixed(2) : '0.00';
-  let f = actEmoji + ' ' + actLabel + ' Flash Offer \u2013 ' + FREQ_LABELS[selectedFreq] + '! ' + actEmoji;
+  /* --- Flash Offer Style message --- */
+  var actEmoji = activity.toLowerCase().indexOf('football')>=0 ? '\u26BD' : activity.toLowerCase().indexOf('basketball')>=0 ? '\uD83C\uDFC0' : activity.toLowerCase().indexOf('swim')>=0 ? '\uD83C\uDFCA' : activity.toLowerCase().indexOf('gymnast')>=0 ? '\uD83E\uDD38' : activity.toLowerCase().indexOf('tennis')>=0 ? '\uD83C\uDFBE' : '\uD83C\uDFC6';
+  var threeStd = ppc1m * spm * 3;
+  var threeStdVat = threeStd * 0.05;
+  var threeStdTotal = threeStd + threeStdVat;
+  var savings3 = (disc3Amt > 0 || ppc3m < ppc1m) ? (threeStdTotal - three).toFixed(2) : '0.00';
+
+  var f = actEmoji + ' ' + actLabel + ' Flash Offer \u2013 ' + FREQ_LABELS[selectedFreq] + '! ' + actEmoji;
   f += '\nI have some exciting news! Our training plan is renewed every 3 months, and I have a Golden Opportunity to secure the next term';
-  if (disc1Amt > 0 || disc3Amt > 0) f += ' at an incredible rate!';
+  if (disc3Amt > 0 || ppc3m < ppc1m) f += ' at an incredible rate!';
   else f += ' at ' + branch + ' branch!';
-  f += '\n\n\uD83D\uDCC5 1 MONTH OPTION (' + spm + ' classes)';
-  f += '\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500';
-  f += '\n\uD83D\uDCB5 Standard Price: ' + oneStdTotal.toFixed(2) + ' AED';
-  if (discAmt > 0) {
-    f += '\n\uD83D\uDCA5 Offer Price: ' + monthlyTotal.toFixed(2) + ' AED \uD83D\uDCC9';
-    f += '\n\uD83D\uDCB0 Amount Saved: ' + oneSaved + ' AED! \uD83D\uDD25';
+
+  f += '\n\nFor our ' + FREQ_LABELS[selectedFreq] + ' program:';
+  f += '\n\nStandard Price: ' + threeStdTotal.toFixed(2) + ' AED for ' + (spm*3) + ' classes';
+  if (parseFloat(savings3) > 0) {
+    var discNote = '';
+    if (disc3Amt > 0) discNote = disc3Msg;
+    if (ppc3m < ppc1m && disc3Amt > 0) discNote += ' + quarterly rate';
+    else if (ppc3m < ppc1m) discNote = 'quarterly rate';
+    f += '\n\nFlash Offer' + (discNote ? ' ('+discNote+')' : '') + ': ' + three.toFixed(2) + ' AED \uD83D\uDCC9';
+    f += '\n\nTotal Savings: ' + savings3 + ' AED! \uD83D\uDCB0\uD83D\uDD25';
   } else {
-    f += '\n\u2705 Price: ' + monthlyTotal.toFixed(2) + ' AED (incl. VAT)';
+    f += '\n\nOur Price: ' + three.toFixed(2) + ' AED for ' + (spm*3) + ' classes (incl. 5% VAT)';
   }
-  f += '\n\n\uD83D\uDCC5 3 MONTH OPTION (' + (spm*3) + ' classes) \u2B50 Best Value';
-  f += '\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500';
-  f += '\n\uD83D\uDCB5 Standard Price: ' + threeStdTotal.toFixed(2) + ' AED';
-  if (discAmt > 0) {
-    f += '\n\uD83D\uDCA5 Offer Price: ' + three.toFixed(2) + ' AED \uD83D\uDCC9\u2728';
-    f += '\n\uD83D\uDCB0 Amount Saved: ' + threeSaved + ' AED! \uD83D\uDD25\uD83D\uDD25';
-  } else {
-    f += '\n\u2705 Price: ' + three.toFixed(2) + ' AED (incl. VAT)';
-  }
-  f += '\n\n\uD83D\uDCCB Breakdown (3 months):';
-  f += '\nTraining: AED ' + ppc.toFixed(2) + '/session x ' + selectedFreq + 'x/week x 12 weeks = AED ' + (pkg3After).toFixed(2);
+
+  f += '\n\nPrice Breakdown:';
+  f += '\nTraining: AED ' + ppc3m.toFixed(2) + '/session x ' + selectedFreq + 'x/week x 12 weeks = AED ' + pkg3After.toFixed(2);
   f += '\nVAT @ 5%: AED ' + threeVat.toFixed(2);
   if (addons.length) {
-    f += '\n\n\uD83D\uDECD\uFE0F One-time fees (incl. 5% VAT):';
-    addons.forEach(a => { f += '\n  \u2022 ' + a.name + ': AED ' + a.withVat.toFixed(2); });
+    f += '\n\nOne-time fees (incl. 5% VAT):';
+    addons.forEach(function(a) { f += '\n  \u2022 ' + a.name + ': AED ' + a.withVat.toFixed(2); });
+    f += '\n\nGrand Total: AED ' + three.toFixed(2);
   }
-  f += '\n\nBy locking this in now, you\u2019re giving your child ' + (spm*3) + ' high-level coaching sessions to ' + actBenefit + '. It\u2019s the absolute best value for the upcoming 12 weeks! \uD83C\uDFC6';
-  if (discAmt > 0) f += '\n\nSince this is a Flash Offer, spots at this rate are strictly limited! \u23F0';
-  f += '\n\n\u2705 Shall I go ahead and lock this in? Let me know and I\u2019ll get the registration sorted right away!';
+
+  f += '\n\nBy securing this ' + (spm*3) + '-class block now, you\u2019re ensuring consistent progress in skills, fitness, and technique over the next 12 weeks at our best available rate.';
+  f += '\n\nSince this is a Flash Offer, spots at this rate are strictly limited! \u23F0';
+  f += '\n\nLet me know if you\u2019d like to lock this in \u2013 happy to help with registration!';
   msgFriendly = f;
 
-  // --- Standard Quote message ---
-  const actBenefit2 = activity.toLowerCase().includes('football') ? 'developing game intelligence, technique, and teamwork' : activity.toLowerCase().includes('basketball') ? 'building court skills, shooting accuracy, and game sense' : activity.toLowerCase().includes('swim') ? 'building water confidence, stroke technique, and endurance' : activity.toLowerCase().includes('gymnast') ? 'developing strength, flexibility, and coordination' : activity.toLowerCase().includes('tennis') ? 'improving serve power, footwork, and rally consistency' : 'building skills, fitness, and confidence';
-  const oneStd2 = (pkgSub * 1.05) + addonsTotal;
-  const oneSaved2 = disc1Amt > 0 ? (oneStd2 - monthlyTotal).toFixed(2) : '0.00';
-  const threeStd2 = (pkgSub3 * 1.05) + addonsTotal;
-  const threeSaved2 = disc3Amt > 0 ? (threeStd2 - three).toFixed(2) : '0.00';
-  let p = actEmoji + ' ' + actLabel + ' \u2013 ' + FREQ_LABELS[selectedFreq] + ' at ' + branch + ' ' + actEmoji;
-  p += '\n\nDear Parent,';
-  if (discAmt > 0) p += '\n\n\uD83C\uDF1F A special offer has been applied \u2013 see your savings below!';
-  p += '\n\n\uD83D\uDCC5 1 MONTH (' + spm + ' sessions)';
-  p += '\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500';
-  p += '\nTraining: AED ' + ppc.toFixed(2) + '/class x ' + selectedFreq + 'x/week x 4 weeks = AED ' + pkgSub.toFixed(2);
-  if (discAmt > 0) p += '\n\uD83D\uDCB0 Amount Saved: AED ' + oneSaved2;
-  p += '\nVAT @ 5%: AED ' + pkgVat.toFixed(2);
-  if (addons.length) addons.forEach(a => { p += '\n' + a.name + ': AED ' + a.withVat.toFixed(2); });
-  p += '\n\u2705 Total: AED ' + monthlyTotal.toFixed(2);
-  p += '\n\n\uD83D\uDCC5 3 MONTHS (' + (spm*3) + ' sessions) \u2B50 Recommended';
-  p += '\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500';
-  p += '\nTraining: AED ' + pkg3After.toFixed(2) + '/3mo = AED ' + (pkg3After).toFixed(2);
-  if (discAmt > 0) p += '\n\uD83D\uDCB0 Amount Saved: AED ' + threeSaved2;
+  /* --- Standard Quote message --- */
+  var p = 'Dear Parent,\n\nPlease find below the pricing for ' + actLabel + ', ' + FREQ_LABELS[selectedFreq] + ' at ' + branch + ' branch:';
+  if (disc1Amt > 0) p += '\nA ' + disc1Msg + ' discount has been applied to the 1-month plan.';
+  if (disc3Amt > 0) p += '\nA ' + disc3Msg + ' discount has been applied to the 3-month plan.';
+
+  p += '\n\n--- 1 MONTH (' + spm + ' sessions) ---';
+  p += '\nTraining: AED ' + ppc1m.toFixed(2) + '/class x ' + selectedFreq + 'x/week x 4 weeks = AED ' + pkgSub1.toFixed(2);
+  if (disc1Amt > 0) p += '\nDiscount: -AED ' + disc1Amt.toFixed(2);
+  p += '\nVAT @ 5%: AED ' + pkgVat1.toFixed(2);
+  if (addons.length) addons.forEach(function(a) { p += '\n' + a.name + ': AED ' + a.withVat.toFixed(2); });
+  p += '\nTotal: AED ' + monthlyTotal.toFixed(2);
+
+  p += '\n\n--- 3 MONTHS (' + (spm*3) + ' sessions) ---';
+  p += '\nTraining: AED ' + ppc3m.toFixed(2) + '/class x ' + selectedFreq + 'x/week x 12 weeks = AED ' + pkgSub3.toFixed(2);
+  if (disc3Amt > 0) p += '\nDiscount: -AED ' + disc3Amt.toFixed(2);
   p += '\nVAT @ 5%: AED ' + threeVat.toFixed(2);
-  if (addons.length) addons.forEach(a => { p += '\n' + a.name + ': AED ' + a.withVat.toFixed(2) + ' (one-time)'; });
-  p += '\n\u2705 Total: AED ' + three.toFixed(2);
-  p += '\n\n\uD83C\uDFC6 The 3-month program is perfect for ' + actBenefit2 + ' with consistent weekly training.';
-  p += '\n\n\uD83D\uDC49 Would you like to proceed with registration? I can get everything set up for you right away!';
+  if (addons.length) addons.forEach(function(a) { p += '\n' + a.name + ': AED ' + a.withVat.toFixed(2) + ' (one-time)'; });
+  p += '\nTotal: AED ' + three.toFixed(2);
+
+  p += '\n\nPlease let us know if you would like to proceed with registration.\n\nBest regards';
   msgFormal = p;
 
   msgBox.textContent = activeMsg === 'friendly' ? msgFriendly : msgFormal;
@@ -539,21 +573,21 @@ function calculate() {
 
 function switchMsg(type) {
   activeMsg = type;
-  document.querySelectorAll('.msg-tab').forEach(t => t.classList.toggle('active', t.textContent.includes(type === 'friendly' ? 'Flash' : 'Standard')));
-  const box = document.getElementById('messageBox');
+  document.querySelectorAll('.msg-tab').forEach(function(t) { t.classList.toggle('active', t.textContent.indexOf(type === 'friendly' ? 'Flash' : 'Standard') >= 0); });
+  var box = document.getElementById('messageBox');
   if (msgFriendly || msgFormal) box.textContent = type === 'friendly' ? msgFriendly : msgFormal;
 }
 
 function copyMessage() {
-  navigator.clipboard.writeText(document.getElementById('messageBox').textContent).then(() => {
-    const b = document.getElementById('copyBtn'); b.textContent='Copied!'; b.classList.add('copied');
-    setTimeout(()=>{b.textContent='Copy Message';b.classList.remove('copied');},2000);
+  navigator.clipboard.writeText(document.getElementById('messageBox').textContent).then(function() {
+    var b = document.getElementById('copyBtn'); b.textContent='Copied!'; b.classList.add('copied');
+    setTimeout(function(){b.textContent='Copy Message';b.classList.remove('copied');},2000);
   });
 }
 
-// ===== ADMIN =====
+/* ===== ADMIN ===== */
 function showAdminLogin() {
-  const d = document.getElementById('adminLogin'); d.classList.remove('hidden'); d.style.display='flex';
+  var d = document.getElementById('adminLogin'); d.classList.remove('hidden'); d.style.display='flex';
   document.getElementById('adminPwd').value=''; document.getElementById('loginError').classList.add('hidden');
   document.getElementById('adminPwd').focus();
 }
@@ -578,24 +612,39 @@ function exitAdmin() {
 }
 
 function renderAdmin() {
-  let html = '';
-  Object.keys(DATA).forEach(branch => {
-    html += `<div class="admin-section"><h3>${branch} <button class="admin-btn-del" onclick="deleteBranch('${branch}')">Delete Branch</button></h3>`;
-    html += '<table class="admin-table"><tr><th>Activity</th><th>Type</th><th>1x/week</th><th>2x/week</th><th>3x/week</th><th>4x/week</th><th></th></tr>';
-    Object.keys(DATA[branch]).forEach(act => {
-      const ad = DATA[branch][act];
+  var html = '';
+  Object.keys(DATA).forEach(function(branch) {
+    html += '<div class="admin-section"><h3>' + branch + ' <button class="admin-btn-del" onclick="deleteBranch(\'' + branch.replace(/'/g,"\\'") + '\')">Delete Branch</button></h3>';
+    html += '<table class="admin-table"><tr><th>Activity</th><th>Type</th><th>Duration</th><th>1x/week</th><th>2x/week</th><th>3x/week</th><th>4x/week</th><th></th></tr>';
+    Object.keys(DATA[branch]).forEach(function(act) {
+      var ad = DATA[branch][act];
+      var safeAct = act.replace(/'/g,"\\'");
       if (isTyped(ad)) {
-        Object.keys(ad.types).forEach(t => {
-          const p = ad.types[t];
-          html += `<tr><td>${act}</td><td>${t}</td>`;
-          for (let i=0;i<4;i++) html += `<td><input type="number" step="0.01" value="${p[i]!==null?p[i]:''}" onchange="adminEdit('${branch}','${act}','${t}',${i},this.value)"></td>`;
-          html += `<td><button class="admin-btn-del" onclick="deleteActivity('${branch}','${act}')">Del</button></td></tr>`;
+        Object.keys(ad.types).forEach(function(t) {
+          var tp = ad.types[t];
+          var safeT = t.replace(/'/g,"\\'");
+          var p1m = isDurFormat(tp) ? tp['1m'] : (Array.isArray(tp) ? tp : [null,null,null,null]);
+          var p3m = isDurFormat(tp) ? tp['3m'] : (Array.isArray(tp) ? tp.slice() : [null,null,null,null]);
+          /* 1m row */
+          html += '<tr><td>' + act + '</td><td>' + t + '</td><td><span class="dur-tag dur-tag-1m">1M</span></td>';
+          for (var i=0;i<4;i++) html += '<td><input type="number" step="0.01" value="' + (p1m[i]!==null?p1m[i]:'') + '" onchange="adminEdit(\'' + branch.replace(/'/g,"\\'") + '\',\'' + safeAct + '\',\'' + safeT + '\',\'1m\',' + i + ',this.value)"></td>';
+          html += '<td><button class="admin-btn-del" onclick="deleteActivity(\'' + branch.replace(/'/g,"\\'") + '\',\'' + safeAct + '\')">Del</button></td></tr>';
+          /* 3m row */
+          html += '<tr><td></td><td></td><td><span class="dur-tag dur-tag-3m">3M</span></td>';
+          for (var i=0;i<4;i++) html += '<td><input type="number" step="0.01" value="' + (p3m[i]!==null?p3m[i]:'') + '" onchange="adminEdit(\'' + branch.replace(/'/g,"\\'") + '\',\'' + safeAct + '\',\'' + safeT + '\',\'3m\',' + i + ',this.value)"></td>';
+          html += '<td></td></tr>';
         });
       } else {
-        const p = ad;
-        html += `<tr><td>${act}</td><td>-</td>`;
-        for (let i=0;i<4;i++) html += `<td><input type="number" step="0.01" value="${p[i]!==null?p[i]:''}" onchange="adminEdit('${branch}','${act}',null,${i},this.value)"></td>`;
-        html += `<td><button class="admin-btn-del" onclick="deleteActivity('${branch}','${act}')">Del</button></td></tr>`;
+        var p1m = isDurFormat(ad) ? ad['1m'] : (Array.isArray(ad) ? ad : [null,null,null,null]);
+        var p3m = isDurFormat(ad) ? ad['3m'] : (Array.isArray(ad) ? ad.slice() : [null,null,null,null]);
+        /* 1m row */
+        html += '<tr><td>' + act + '</td><td>-</td><td><span class="dur-tag dur-tag-1m">1M</span></td>';
+        for (var i=0;i<4;i++) html += '<td><input type="number" step="0.01" value="' + (p1m[i]!==null?p1m[i]:'') + '" onchange="adminEdit(\'' + branch.replace(/'/g,"\\'") + '\',\'' + safeAct + '\',null,\'1m\',' + i + ',this.value)"></td>';
+        html += '<td><button class="admin-btn-del" onclick="deleteActivity(\'' + branch.replace(/'/g,"\\'") + '\',\'' + safeAct + '\')">Del</button></td></tr>';
+        /* 3m row */
+        html += '<tr><td></td><td></td><td><span class="dur-tag dur-tag-3m">3M</span></td>';
+        for (var i=0;i<4;i++) html += '<td><input type="number" step="0.01" value="' + (p3m[i]!==null?p3m[i]:'') + '" onchange="adminEdit(\'' + branch.replace(/'/g,"\\'") + '\',\'' + safeAct + '\',null,\'3m\',' + i + ',this.value)"></td>';
+        html += '<td></td></tr>';
       }
     });
     html += '</table></div>';
@@ -603,42 +652,60 @@ function renderAdmin() {
   document.getElementById('adminContent').innerHTML = html;
 }
 
-function adminEdit(branch, act, type, idx, val) {
-  const v = val === '' ? null : parseFloat(val);
-  if (type) DATA[branch][act].types[type][idx] = v;
-  else DATA[branch][act][idx] = v;
+function adminEdit(branch, act, type, dur, idx, val) {
+  var v = val === '' ? null : parseFloat(val);
+  if (type) {
+    var tp = DATA[branch][act].types[type];
+    if (!isDurFormat(tp)) {
+      DATA[branch][act].types[type] = { '1m': Array.isArray(tp) ? tp : [null,null,null,null], '3m': Array.isArray(tp) ? tp.slice() : [null,null,null,null] };
+    }
+    DATA[branch][act].types[type][dur][idx] = v;
+  } else {
+    var ad = DATA[branch][act];
+    if (!isDurFormat(ad)) {
+      DATA[branch][act] = { '1m': Array.isArray(ad) ? ad : [null,null,null,null], '3m': Array.isArray(ad) ? ad.slice() : [null,null,null,null] };
+    }
+    DATA[branch][act][dur][idx] = v;
+  }
 }
 
 function deleteBranch(branch) {
-  if (confirm(`Delete branch "${branch}" and all its activities?`)) { delete DATA[branch]; renderAdmin(); }
+  if (confirm('Delete branch "' + branch + '" and all its activities?')) { delete DATA[branch]; renderAdmin(); }
 }
 
 function deleteActivity(branch, act) {
-  if (confirm(`Delete "${act}" from ${branch}?`)) { delete DATA[branch][act]; renderAdmin(); }
+  if (confirm('Delete "' + act + '" from ' + branch + '?')) { delete DATA[branch][act]; renderAdmin(); }
 }
 
 function addBranchActivity() {
-  const b = document.getElementById('newBranch').value.trim();
-  const a = document.getElementById('newActivity').value.trim();
-  const t = document.getElementById('newActType').value;
+  var b = document.getElementById('newBranch').value.trim();
+  var a = document.getElementById('newActivity').value.trim();
+  var t = document.getElementById('newActType').value;
   if (!b || !a) return alert('Enter both branch and activity name');
   if (!DATA[b]) DATA[b] = {};
-  if (t === 'typed') DATA[b][a] = {types:{"Private":[null,null,null,null],"Semi Private":[null,null,null,null],"Group":[null,null,null,null]}};
-  else DATA[b][a] = [null,null,null,null];
+  if (t === 'typed') {
+    DATA[b][a] = {types:{
+      "Private":{"1m":[null,null,null,null],"3m":[null,null,null,null]},
+      "Semi Private":{"1m":[null,null,null,null],"3m":[null,null,null,null]},
+      "Group":{"1m":[null,null,null,null],"3m":[null,null,null,null]}
+    }};
+  } else {
+    DATA[b][a] = {"1m":[null,null,null,null],"3m":[null,null,null,null]};
+  }
   document.getElementById('newBranch').value=''; document.getElementById('newActivity').value='';
   renderAdmin();
 }
 
-async function saveAdmin() {
-  const st = document.getElementById('adminStatus');
+function saveAdmin() {
+  var st = document.getElementById('adminStatus');
   st.className = 'admin-status'; st.textContent = 'Saving...';
   try {
     localStorage.setItem('priceData', JSON.stringify(DATA));
     st.className = 'admin-status success'; st.textContent = 'Prices saved successfully!';
-    // Also try cloud save (may fail due to CORS - that's ok, localStorage is primary)
-    try { await fetch(BLOB_URL, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(DATA)}); } catch(e) {}
+    /* Also try cloud save (may fail due to CORS) */
+    try { fetch(BLOB_URL, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(DATA)}); } catch(e) {}
   } catch(e) { st.className = 'admin-status error'; st.textContent = 'Failed to save. Try again.'; }
-  setTimeout(()=>{st.textContent='';st.className='';},3000);
+  setTimeout(function(){st.textContent='';st.className='';},3000);
 }
 
 loadPrices();
