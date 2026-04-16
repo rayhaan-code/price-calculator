@@ -172,14 +172,21 @@
 
   <div class="card">
     <div class="form-group" style="margin-bottom:1rem">
-      <label>Discount (applied to package only)</label>
+      <h2>Discount (applied to package only)</h2>
       <div class="discount-type-toggle">
         <button class="active" onclick="setDiscountType('%')">%</button>
         <button onclick="setDiscountType('AED')">AED</button>
       </div>
     </div>
-    <div class="form-group" style="margin-bottom:0">
-      <input type="number" id="discount" min="0" step="any" placeholder="Enter % discount" value="0" oninput="calculate()">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div class="form-group" style="margin-bottom:0">
+        <label style="font-size:0.8rem">1 Month Discount</label>
+        <input type="number" id="discount1" min="0" step="any" placeholder="0" value="0" oninput="calculate()">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label style="font-size:0.8rem">3 Month Discount</label>
+        <input type="number" id="discount3" min="0" step="any" placeholder="0" value="0" oninput="calculate()">
+      </div>
     </div>
   </div>
 
@@ -381,7 +388,8 @@ function toggleAddon(cb) { cb.closest('.addon-item').classList.toggle('checked',
 function setDiscountType(type) {
   discountType = type;
   document.querySelectorAll('.discount-type-toggle button').forEach(b => { b.classList.toggle('active', b.textContent === type); });
-  document.getElementById('discount').placeholder = type === '%' ? 'Enter % discount' : 'Enter AED discount';
+  document.getElementById('discount1').placeholder = '0';
+  document.getElementById('discount3').placeholder = '0';
   calculate();
 }
 
@@ -397,7 +405,8 @@ function calculate() {
   const branch = document.getElementById('branch').value;
   const activity = document.getElementById('activity').value;
   const classType = document.getElementById('classType').value;
-  const discountVal = parseFloat(document.getElementById('discount').value) || 0;
+  const disc1Val = parseFloat(document.getElementById('discount1').value) || 0;
+  const disc3Val = parseFloat(document.getElementById('discount3').value) || 0;
   const totalEl = document.getElementById('totalPrice');
   const breakdownEl = document.getElementById('breakdown');
   const origEl = document.getElementById('originalPrice');
@@ -422,16 +431,20 @@ function calculate() {
   const spm = selectedFreq * 4;
   const pkgSub = ppc * spm;
 
-  let discAmt = 0, discLabel = '', discMsg = '';
-  if (discountType === '%') { discAmt = pkgSub*(discountVal/100); discLabel = discountVal>0?`${discountVal}% off`:''; discMsg = discountVal>0?`${discountVal}% discount`:''; }
-  else { discAmt = discountVal; discLabel = discountVal>0?`AED ${discountVal.toFixed(2)} off`:''; discMsg = discountVal>0?`AED ${discountVal.toFixed(2)} discount`:''; }
+  let disc1Amt=0,disc1Msg='';
+  if(discountType==='%'){disc1Amt=pkgSub*(disc1Val/100);disc1Msg=disc1Val>0?disc1Val+'%':'';}else{disc1Amt=disc1Val;disc1Msg=disc1Val>0?'AED '+disc1Val.toFixed(2):'';}
+  const pkgSub3=pkgSub*3;
+  let disc3Amt=0,disc3Msg='';
+  if(discountType==='%'){disc3Amt=pkgSub3*(disc3Val/100);disc3Msg=disc3Val>0?disc3Val+'%':'';}else{disc3Amt=disc3Val;disc3Msg=disc3Val>0?'AED '+disc3Val.toFixed(2):'';}
+  const discAmt=disc1Amt;const discMsg=disc1Msg;
 
-  const pkgAfter = Math.max(0, pkgSub - discAmt);
+  const pkgAfter = Math.max(0, pkgSub - disc1Amt);
   const pkgVat = pkgAfter * 0.05;
   const pkgWithVat = pkgAfter + pkgVat;
   const monthlyTotal = pkgWithVat + addonsTotal;
-  const threeVat = (pkgAfter * 3) * 0.05;
-  const threeWithVat = (pkgAfter * 3) + threeVat;
+  const pkg3After = Math.max(0, pkgSub3 - disc3Amt);
+  const threeVat = pkg3After * 0.05;
+  const threeWithVat = pkg3After + threeVat;
   const three = threeWithVat + addonsTotal;
 
   durCard.classList.remove('hidden');
@@ -440,14 +453,15 @@ function calculate() {
   document.getElementById('dur3Price').textContent = `AED ${three.toFixed(2)}`;
   document.getElementById('dur3Detail').textContent = `total for 3 months (incl. VAT)`;
 
-  if (discAmt > 0) { origEl.textContent = `AED ${(pkgSub*1.05+addonsTotal).toFixed(2)}`; origEl.classList.remove('hidden'); }
+  if ((disc1Amt > 0 || disc3Amt > 0)) { origEl.textContent = `AED ${(pkgSub*1.05+addonsTotal).toFixed(2)}`; origEl.classList.remove('hidden'); }
   else { origEl.classList.add('hidden'); }
 
   totalEl.innerHTML = `<span class="currency">AED</span> ${monthlyTotal.toFixed(2)}`;
 
   const actLabel = classType ? `${activity} (${classType})` : activity;
   let bd = `Package: AED ${ppc.toFixed(2)}/class x ${selectedFreq}x/week x 4 weeks = AED ${pkgSub.toFixed(2)}`;
-  if (discLabel) bd += `<br><span class="discount-badge">${discLabel} ÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ® saving AED ${discAmt.toFixed(2)}</span>`;
+  if (disc1Amt > 0) bd += `<br><span class="discount-badge">1mo: -AED ${disc1Amt.toFixed(2)}</span>`;
+  if (disc3Amt > 0) bd += `<br><span class="discount-badge">3mo: -AED ${disc3Amt.toFixed(2)}` ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ® saving AED ${discAmt.toFixed(2)}</span>`;
   bd += `<br>VAT @ 5%: AED ${pkgVat.toFixed(2)}`;
   if (addons.length) bd += '<br>Add-ons: ' + addons.map(a=>`${a.name} (AED ${a.withVat.toFixed(2)})`).join(', ');
   breakdownEl.innerHTML = bd;
@@ -456,12 +470,12 @@ function calculate() {
   const actEmoji = activity.toLowerCase().includes('football') ? '\u26BD' : activity.toLowerCase().includes('basketball') ? '\uD83C\uDFC0' : activity.toLowerCase().includes('swim') ? '\uD83C\uDFCA' : activity.toLowerCase().includes('gymnast') ? '\uD83E\uDD38' : activity.toLowerCase().includes('tennis') ? '\uD83C\uDFBE' : '\uD83C\uDFC6';
   const actBenefit = activity.toLowerCase().includes('football') ? 'improve their game IQ, ball control, and teamwork on the pitch' : activity.toLowerCase().includes('basketball') ? 'sharpen their handles, shooting, and court awareness' : activity.toLowerCase().includes('swim') ? 'improve their technique, stamina, and confidence in the water' : activity.toLowerCase().includes('gymnast') ? 'build strength, flexibility, and master new skills' : activity.toLowerCase().includes('tennis') ? 'develop their serve, footwork, and match strategy' : 'develop their skills, fitness, and confidence';
   const oneStdTotal = (pkgSub * 1.05) + addonsTotal;
-  const oneSaved = discAmt > 0 ? (oneStdTotal - monthlyTotal).toFixed(2) : '0.00';
-  const threeStdTotal = (pkgSub * 3 * 1.05) + addonsTotal;
-  const threeSaved = discAmt > 0 ? (threeStdTotal - three).toFixed(2) : '0.00';
+  const oneSaved = disc1Amt > 0 ? (oneStdTotal - monthlyTotal).toFixed(2) : '0.00';
+  const threeStdTotal2 = (pkgSub3 * 1.05) + addonsTotal;
+  const threeSaved = disc3Amt > 0 ? (threeStdTotal2 - three).toFixed(2) : '0.00';
   let f = actEmoji + ' ' + actLabel + ' Flash Offer \u2013 ' + FREQ_LABELS[selectedFreq] + '! ' + actEmoji;
   f += '\nI have some exciting news! Our training plan is renewed every 3 months, and I have a Golden Opportunity to secure the next term';
-  if (discAmt > 0) f += ' at an incredible rate!';
+  if (disc1Amt > 0 || disc3Amt > 0) f += ' at an incredible rate!';
   else f += ' at ' + branch + ' branch!';
   f += '\n\n\uD83D\uDCC5 1 MONTH OPTION (' + spm + ' classes)';
   f += '\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500';
@@ -482,7 +496,7 @@ function calculate() {
     f += '\n\u2705 Price: ' + three.toFixed(2) + ' AED (incl. VAT)';
   }
   f += '\n\n\uD83D\uDCCB Breakdown (3 months):';
-  f += '\nTraining: AED ' + ppc.toFixed(2) + '/session x ' + selectedFreq + 'x/week x 12 weeks = AED ' + (pkgAfter*3).toFixed(2);
+  f += '\nTraining: AED ' + ppc.toFixed(2) + '/session x ' + selectedFreq + 'x/week x 12 weeks = AED ' + (pkg3After).toFixed(2);
   f += '\nVAT @ 5%: AED ' + threeVat.toFixed(2);
   if (addons.length) {
     f += '\n\n\uD83D\uDECD\uFE0F One-time fees (incl. 5% VAT):';
@@ -496,9 +510,9 @@ function calculate() {
   // --- Standard Quote message ---
   const actBenefit2 = activity.toLowerCase().includes('football') ? 'developing game intelligence, technique, and teamwork' : activity.toLowerCase().includes('basketball') ? 'building court skills, shooting accuracy, and game sense' : activity.toLowerCase().includes('swim') ? 'building water confidence, stroke technique, and endurance' : activity.toLowerCase().includes('gymnast') ? 'developing strength, flexibility, and coordination' : activity.toLowerCase().includes('tennis') ? 'improving serve power, footwork, and rally consistency' : 'building skills, fitness, and confidence';
   const oneStd2 = (pkgSub * 1.05) + addonsTotal;
-  const oneSaved2 = discAmt > 0 ? (oneStd2 - monthlyTotal).toFixed(2) : '0.00';
-  const threeStd2 = (pkgSub * 3 * 1.05) + addonsTotal;
-  const threeSaved2 = discAmt > 0 ? (threeStd2 - three).toFixed(2) : '0.00';
+  const oneSaved2 = disc1Amt > 0 ? (oneStd2 - monthlyTotal).toFixed(2) : '0.00';
+  const threeStd2 = (pkgSub3 * 1.05) + addonsTotal;
+  const threeSaved2 = disc3Amt > 0 ? (threeStd2 - three).toFixed(2) : '0.00';
   let p = actEmoji + ' ' + actLabel + ' \u2013 ' + FREQ_LABELS[selectedFreq] + ' at ' + branch + ' ' + actEmoji;
   p += '\n\nDear Parent,';
   if (discAmt > 0) p += '\n\n\uD83C\uDF1F A special offer has been applied \u2013 see your savings below!';
@@ -511,7 +525,7 @@ function calculate() {
   p += '\n\u2705 Total: AED ' + monthlyTotal.toFixed(2);
   p += '\n\n\uD83D\uDCC5 3 MONTHS (' + (spm*3) + ' sessions) \u2B50 Recommended';
   p += '\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500';
-  p += '\nTraining: AED ' + pkgAfter.toFixed(2) + '/month x 3 = AED ' + (pkgAfter*3).toFixed(2);
+  p += '\nTraining: AED ' + pkg3After.toFixed(2) + '/3mo = AED ' + (pkg3After).toFixed(2);
   if (discAmt > 0) p += '\n\uD83D\uDCB0 Amount Saved: AED ' + threeSaved2;
   p += '\nVAT @ 5%: AED ' + threeVat.toFixed(2);
   if (addons.length) addons.forEach(a => { p += '\n' + a.name + ': AED ' + a.withVat.toFixed(2) + ' (one-time)'; });
