@@ -509,41 +509,51 @@ function calculate() {
 
   /* --- Flash Offer Style message --- */
   var actEmoji = activity.toLowerCase().indexOf('football')>=0 ? '\u26BD' : activity.toLowerCase().indexOf('basketball')>=0 ? '\uD83C\uDFC0' : activity.toLowerCase().indexOf('swim')>=0 ? '\uD83C\uDFCA' : activity.toLowerCase().indexOf('gymnast')>=0 ? '\uD83E\uDD38' : activity.toLowerCase().indexOf('tennis')>=0 ? '\uD83C\uDFBE' : '\uD83C\uDFC6';
-  var threeStd = ppc1m * spm * 3;
-  var threeStdVat = threeStd * 0.05;
-  var threeStdTotal = threeStd + threeStdVat;
-  var savings3 = (disc3Amt > 0 || ppc3m < ppc1m) ? (threeStdTotal - three).toFixed(2) : '0.00';
 
-  var f = actEmoji + ' ' + actLabel + ' Flash Offer \u2013 ' + FREQ_LABELS[selectedFreq] + '! ' + actEmoji;
-  f += '\nI have some exciting news! Our training plan is renewed every 3 months, and I have a Golden Opportunity to secure the next term';
-  if (disc3Amt > 0 || ppc3m < ppc1m) f += ' at an incredible rate!';
-  else f += ' at ' + branch + ' branch!';
+  /* Standard all-inclusive prices (no discount, WITH VAT + addons) - fair comparison vs Flash Offer */
+  var oneStdFull = ppc1m * spm * 1.05 + addonsTotal;
+  var threeStdFull = ppc1m * spm * 3 * 1.05 + addonsTotal;
+  var savings1 = oneStdFull - monthlyTotal;
+  var savings3 = threeStdFull - three;
+  var has3Flash = savings3 > 0.01;
+  var has1Flash = savings1 > 0.01;
+  var addonList = addons.length ? addons.map(function(a){return a.name;}).join(' + ') : '';
 
-  f += '\n\nFor our ' + FREQ_LABELS[selectedFreq] + ' program:';
-  f += '\n\nStandard Price: ' + threeStdTotal.toFixed(2) + ' AED for ' + (spm*3) + ' classes';
-  if (parseFloat(savings3) > 0) {
-    var discNote = '';
-    if (disc3Amt > 0) discNote = disc3Msg;
-    if (ppc3m < ppc1m && disc3Amt > 0) discNote += ' + quarterly rate';
-    else if (ppc3m < ppc1m) discNote = 'quarterly rate';
-    f += '\n\nFlash Offer' + (discNote ? ' ('+discNote+')' : '') + ': ' + three.toFixed(2) + ' AED \uD83D\uDCC9';
-    f += '\n\nTotal Savings: ' + savings3 + ' AED! \uD83D\uDCB0\uD83D\uDD25';
+  var f = actEmoji + ' ' + actLabel.toUpperCase() + ' OPPORTUNITY \u2013 ' + FREQ_LABELS[selectedFreq].toUpperCase() + '! ' + actEmoji;
+  f += '\n\nI have some exciting news! Our training plan for the new term at the ' + branch + ' Branch is officially open';
+  if (has3Flash || has1Flash) f += ', and I have a Golden Opportunity for you to secure your spot';
+  f += '!';
+
+  /* 3-MONTH SECTION */
+  f += '\n\n\uD83C\uDFC6 3-MONTH PACKAGE';
+  f += '\n(Best for consistent progress and skill building)';
+  f += '\n\nStandard Price: ' + threeStdFull.toFixed(2) + ' AED';
+  if (has3Flash) {
+    var note3 = '';
+    if (disc3Amt > 0) note3 = 'Discount Applied';
+    if (ppc3m < ppc1m && disc3Amt > 0) note3 = 'Quarterly Rate + Discount';
+    else if (ppc3m < ppc1m) note3 = 'Quarterly Rate';
+    f += '\nFlash Offer (' + note3 + '): ' + three.toFixed(2) + ' AED \uD83D\uDCC9';
+    f += '\nYou Save: ' + savings3.toFixed(2) + ' AED! \uD83D\uDCB0\uD83D\uDD25';
   } else {
-    f += '\n\nOur Price: ' + three.toFixed(2) + ' AED for ' + (spm*3) + ' classes (incl. 5% VAT)';
+    f += '\nOur Price: ' + three.toFixed(2) + ' AED';
   }
+  f += '\n(Includes: ' + (spm*3) + ' Sessions' + (addonList ? ' + ' + addonList : '') + ' + VAT)';
 
-  f += '\n\nPrice Breakdown:';
-  f += '\nTraining: AED ' + ppc3m.toFixed(2) + '/session x ' + selectedFreq + 'x/week x 12 weeks = AED ' + pkg3After.toFixed(2);
-  f += '\nVAT @ 5%: AED ' + threeVat.toFixed(2);
-  if (addons.length) {
-    f += '\n\nOne-time fees (incl. 5% VAT):';
-    addons.forEach(function(a) { f += '\n  \u2022 ' + a.name + ': AED ' + a.withVat.toFixed(2); });
-    f += '\n\nGrand Total: AED ' + three.toFixed(2);
+  /* 1-MONTH SECTION */
+  f += '\n\n\u26A1 1-MONTH PACKAGE';
+  f += '\n(Standard monthly rate)';
+  f += '\n\nStandard Price: ' + oneStdFull.toFixed(2) + ' AED';
+  if (has1Flash) {
+    f += '\nFlash Offer (Discount Applied): ' + monthlyTotal.toFixed(2) + ' AED \uD83D\uDCC9';
+    f += '\nYou Save: ' + savings1.toFixed(2) + ' AED! \uD83D\uDCB0';
+  } else {
+    f += '\nOur Price: ' + monthlyTotal.toFixed(2) + ' AED';
   }
+  f += '\n(Includes: ' + spm + ' Sessions' + (addonList ? ' + ' + addonList : '') + ' + VAT)';
 
-  f += '\n\nBy securing this ' + (spm*3) + '-class block now, you\u2019re ensuring consistent progress in skills, fitness, and technique over the next 12 weeks at our best available rate.';
-  f += '\n\nSince this is a Flash Offer, spots at this rate are strictly limited! \u23F0';
-  f += '\n\nLet me know if you\u2019d like to lock this in \u2013 happy to help with registration!';
+  f += '\n\n\u23F0 Spots are limited and filling on a first-come, first-served basis!';
+  f += '\n\nLet me know if you\u2019d like to lock this in \u2013 happy to help with registration! \uD83D\uDE80';
   msgFriendly = f;
 
   /* --- Standard Quote message --- */
